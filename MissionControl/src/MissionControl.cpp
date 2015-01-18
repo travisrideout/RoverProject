@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]) {
 	ServerSocket server;			// create a server object for communication
-	CollisionAvoidance collAv(server);
+	CollisionAvoidance collAv(server);	//create a collision avoidance object
 
 	data_struct scratch_vars;
 
