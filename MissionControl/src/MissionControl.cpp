@@ -72,21 +72,14 @@ int main(int argc, char *argv[]) {
 							scratch_vars.rDutyCmd = 0;
 						}
 					}
-
-					//collAv.ProximityHalt(&scratch_vars);
-
-					//server.SetSendMessageVars(&scratch_vars);
 					/*std::cout << "L_DIR = " << scratch_vars.lDirCmd << "\tR_DIR = " << scratch_vars.rDirCmd
 							<< "\tL_Duty = " << scratch_vars.lDutyCmd << "\tR_Duty = " << scratch_vars.rDutyCmd << std::endl;*/
 
 				}
 			}
 		}
-
-		collAv.ProximityHalt(&scratch_vars);
-
-		server.SetSendMessageVars(&scratch_vars);
-
+		collAv.ProximityHalt(&scratch_vars);		//use collision avoidance
+		server.SetSendMessageVars(&scratch_vars);	//set send message vars
 	}
 
 	SDL_FreeSurface(currentImage);

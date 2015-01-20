@@ -13,8 +13,7 @@ CollisionAvoidance::CollisionAvoidance(ServerSocket &sr) : serverRef(sr){
 // Checks to see if close to object, if so then stops forward motion
 int CollisionAvoidance::ProximityHalt(data_struct *scratchSend){
 	serverRef.GetRecvMessageVars(&msgRecvData);
-	//std::cout << "Ping = " << msgRecvData.pingDist << std::endl;
-	if(msgRecvData.pingDist<10 && (scratchSend->lDirCmd==1 || scratchSend->rDirCmd==1)){ //(scratchSend->lDutyCmd>0 || scratchSend->rDutyCmd>0)
+	if(msgRecvData.pingDist<10 && (scratchSend->lDirCmd==1 || scratchSend->rDirCmd==1)){
 		scratchSend->lDutyCmd = 0;
 		scratchSend->rDutyCmd = 0;
 	}
