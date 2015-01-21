@@ -32,7 +32,7 @@
 							<tool command="arm-linux-gnueabihf-g++" id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.230536539" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base">
 								<option id="gnu.cpp.compiler.option.include.paths.430225944" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="C:/SysGCC/BeagleDebian/arm-linux-gnueabihf/include/c++/4.6.3"/>
-									<listOptionValue builtIn="false" value="&quot;C:\BeagleBone_Projects\includes&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\git\RoverProject\Includes&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.759295524" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1692223931" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -48,7 +48,7 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.base.1699403861" name="Cygwin C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.base"/>
 							<tool command="arm-linux-gnueabihf-g++" id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base.1583192638" name="Cygwin C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base">
-								<option id="gnu.cpp.link.option.paths.984442965" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths"/>
+								<option id="gnu.cpp.link.option.paths.984442965" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths"/>
 								<option id="gnu.cpp.link.option.libs.530119783" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
@@ -93,6 +93,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1366870475" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\SysGCC\BeagleDebian\arm-linux-gnueabihf\include\c++\4.6.3&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\BeagleBone_Projects\includes&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\git\RoverProject\Includes&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1663952228" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1225514550" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
