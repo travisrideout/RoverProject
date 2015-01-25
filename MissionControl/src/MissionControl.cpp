@@ -53,11 +53,12 @@ int main(int argc, char *argv[]) {
 
 	while(isRunning){
 		Sleep(30);		// Sleep for 30ms to reduce CPU usage
-		SDL_BlitSurface(currentImage, NULL, windowSurface, NULL);
+		//SDL_BlitSurface(currentImage, NULL, windowSurface, NULL);
 		SDL_UpdateWindowSurface(window);
-		SDL_RenderCopy(renderTarget, text, NULL, &textRect);
+		//SDL_RenderCopy(renderTarget, text, NULL, &textRect);
+		//std::cout<<"going to get message vars"<<std::endl;
 		server.GetSendMessageVars(&scratch_vars);
-
+		//std::cout<<"got them"<<std::endl;
 		while(SDL_PollEvent(&ev) != 0){
 			//Getting quit and the keyboard events
 			if(ev.type == SDL_KEYDOWN){

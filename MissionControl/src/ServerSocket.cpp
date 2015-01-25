@@ -72,6 +72,8 @@ void ServerSocket::HandleTCPClient(TCPSocket *sock) {
 
 int ServerSocket::UseMessageData(){
 	std::cout << "\tPing = " << msgRecvData.pingDist
+			<< "\tL_POS = " << msgRecvData.lPos
+			<< "\tR_POS = " << msgRecvData.rPos
 			<< "\tX accel = " <<  (float)msgRecvData.imuXAccel/16384
 			<< "\tY accel = " << (float)msgRecvData.imuYAccel/16384
 			<< "\tZ accel = " << (float)msgRecvData.imuZAccel/16384 << std::endl;

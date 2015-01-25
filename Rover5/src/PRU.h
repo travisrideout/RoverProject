@@ -53,6 +53,8 @@ public:
 	PRU();
 
 	int GetPing();
+	int GetLeftPos();
+	int GetRightPos();
 
 	//Motion modifiers
 	int GetMotionVars(motion_struct*);

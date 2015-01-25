@@ -92,7 +92,8 @@ int ClientSocket::UseMessageData(){
 	scratch_vars.lPWMDuty = msgRecvData.lDutyCmd;
 	scratch_vars.rPWMDuty = msgRecvData.rDutyCmd;
 	pru.SetMotionVars(&scratch_vars);
-	std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tR_DIR = " << msgRecvData.rDirCmd
+	std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tL_POS = " << pru.GetLeftPos()
+				<< "\tR_DIR = " << msgRecvData.rDirCmd << "\tR_POS = " << pru.GetRightPos()
 				<< "\tL_Duty = " << msgRecvData.lDutyCmd << "\tR_Duty = " << msgRecvData.rDutyCmd
 				<< std::endl;
 	return 0;

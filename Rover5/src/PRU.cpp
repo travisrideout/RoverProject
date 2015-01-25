@@ -46,8 +46,11 @@ PRU::PRU() {
 	sonar_vars.distance = 100;
 
 	//set initial PWM's to 00
-	sharedMem_int[OFFSET_SHAREDRAM+9] = 0;
-	sharedMem_int[OFFSET_SHAREDRAM+10] = 0;
+	sharedMem_int[OFFSET_SHAREDRAM+9] = 0;		//zero left PWM duty
+	sharedMem_int[OFFSET_SHAREDRAM+10] = 0;		//zero Right PWM Duty
+	sharedMem_int[OFFSET_SHAREDRAM+11] = 0;		//Zero Left Position
+	sharedMem_int[OFFSET_SHAREDRAM+12] = 0;		//Zero Right Position
+
 
 	prussdrv_exec_program (PRU_NUM0, "./Rover5_PRU0.bin");	//start PRU0 code
 	prussdrv_exec_program (PRU_NUM1, "./Rover5_PRU1.bin");	//start PRU1 code
@@ -76,6 +79,16 @@ int PRU::GetPing(){
 	return distance;
 }
 
+int PRU::GetLeftPos(){
+	int leftPos = sharedMem_int[OFFSET_SHAREDRAM+11];
+	return leftPos;
+}
+
+int PRU::GetRightPos(){
+	int rightPos = sharedMem_int[OFFSET_SHAREDRAM+12];
+	return rightPos;
+}
+
 int PRU::GetMotionVars(motion_struct *new_vars){
 	*new_vars = motion_vars;
 	return 1;
@@ -83,7 +96,7 @@ int PRU::GetMotionVars(motion_struct *new_vars){
 
 int PRU::SetMotionVars(motion_struct *new_vars){
 	motion_vars = *new_vars;
-	int calcPeriod = (1.0/motion_vars.period)/0.000000035;
+	int calcPeriod = (1.0/motion_vars.period)/0.000000150;		//35usec from PRU.asm cycles
 	sharedMem_int[OFFSET_SHAREDRAM+6] = calcPeriod;
 	sharedMem_int[OFFSET_SHAREDRAM+7] = motion_vars.lDir;
 	sharedMem_int[OFFSET_SHAREDRAM+8] = motion_vars.rDir;

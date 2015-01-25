@@ -54,16 +54,24 @@ int main() {
 			if(count>pingDelay){									//time delay to avoid ping echo
 				scratch_vars.pingDist = pru.GetPing();
 				count = 0;
-				pingDelay = scratch_vars.pingDist/20;				//dynamically set ping delay, close = short delay
+				if(scratch_vars.pingDist<2000){						//avoid bad ping delay
+					pingDelay = scratch_vars.pingDist/20;			//dynamically set ping delay, close = short delay
+				}
 			}else{
 				count++;
 			}
 			scratch_vars.imuXAccel = imu.getAccelerationX();
 			scratch_vars.imuYAccel = imu.getAccelerationY();
 			scratch_vars.imuZAccel = imu.getAccelerationZ();
+			scratch_vars.lPos = pru.GetLeftPos();
+			scratch_vars.rPos = pru.GetRightPos();
 			tcp.SetMessageVars(&scratch_vars);
 			pthread_mutex_unlock(&Lock);
 			imu.readFullSensorState();
+		}
+		if (!communicating) {
+			std::cout << "L_POS = " << pru.GetLeftPos()
+					<< "\tR_POS = " << pru.GetRightPos() << std::endl;
 		}
 	}
 
