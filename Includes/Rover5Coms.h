@@ -13,7 +13,7 @@
 #include <iomanip>			// for hex
 #include <stdio.h>			// for sscanf
 
-#define PACKET_SIZE		52			// total # of characters in packet, characters because socket sends char[]
+#define PACKET_SIZE		68		//52	// total # of characters in packet, characters because socket sends char[]
 #define BLOCK_SIZE		4 			// # of characters per variable
 #define PACKET_START 	"STRT"		// start string used for checking packet start
 #define PACKET_END		"END0\0" 	// end string used for checking packet end
@@ -33,6 +33,10 @@ enum Data {
 	IMU_X_ACCEL,
 	IMU_Y_ACCEL,
 	IMU_Z_ACCEL,
+	L_POS_HIGH,
+	L_POS_LOW,
+	R_POS_HIGH,
+	R_POS_LOW,
 	END
 };
 
@@ -49,6 +53,8 @@ typedef struct data_struct {
 	short imuXAccel;
 	short imuYAccel;
 	short imuZAccel;
+	int lPos;
+	int rPos;
 	std::string end;
 }data_struct;
 
@@ -68,6 +74,8 @@ inline int PrepareSendPacket(char msg[], data_struct &data){
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuXAccel;
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuYAccel;
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuZAccel;
+	ssprepare << std::setw(8) << std::setfill('0') << std::hex << data.lPos;
+	ssprepare << std::setw(8) << std::setfill('0') << std::hex << data.rPos;
 	ssprepare << data.end;
 	ssprepare >> msg;
 	return 0;
@@ -78,8 +86,10 @@ inline int PrepareSendPacket(char msg[], data_struct &data){
 //does not include any value calculations ie twos compliments for negative values
 inline int ParseRecvPacket(char msg[], data_struct &data){
 	char blockRead[BLOCK_SIZE+1];					//create char array to process blocks
+	char intBlockTemp[BLOCK_SIZE*2+1];				//used for combining low/high int of position
 	std::stringstream ssconvert;					//create string stream object
 	short myVar = 0;								//used for signed conversion for IMU values
+	int myInt = 0;									//used for signed conversion for position values
 	for (int i=0; i<PACKET_SIZE; i+=BLOCK_SIZE){	//parse message in block size portions
 		ssconvert.clear();							//clear string stream, have to do this for loop to work
 		memset(blockRead,'0',sizeof(blockRead));	//clears blockRead
@@ -118,6 +128,28 @@ inline int ParseRecvPacket(char msg[], data_struct &data){
 		case IMU_Z_ACCEL: sscanf(blockRead,"%hx",&myVar);
 			data.imuZAccel = myVar;
 			break;
+		case L_POS_HIGH:	memcpy(intBlockTemp,&blockRead[0],BLOCK_SIZE);
+			break;
+		case L_POS_LOW:
+			for(int x = BLOCK_SIZE; x < BLOCK_SIZE*2; x++) {
+				intBlockTemp[x] = blockRead[x-BLOCK_SIZE];
+			}
+			intBlockTemp[8] = '\0';
+			sscanf(intBlockTemp,"%x",&myInt);
+			data.lPos = myInt;
+			memset(intBlockTemp,'0',sizeof(intBlockTemp));	//clears intBlockRead
+			break;
+		case R_POS_HIGH:	memcpy(intBlockTemp,&blockRead[0],BLOCK_SIZE);
+			break;
+		case R_POS_LOW:
+			for(int x = BLOCK_SIZE; x < BLOCK_SIZE*2; x++) {
+				intBlockTemp[x] = blockRead[x-BLOCK_SIZE];
+			}
+			intBlockTemp[8] = '\0';
+			sscanf(intBlockTemp,"%x",&myInt);
+			data.rPos = myInt;
+			memset(intBlockTemp,'0',sizeof(intBlockTemp));	//clears intBlockRead
+			break;
 		case END: ssconvert >> data.end;
 			break;
 		default: std::cerr << "Packet block parsing error" << std::endl;
@@ -141,6 +173,8 @@ inline void InitializeMessageData(data_struct &data){
 	data.imuXAccel = 0;
 	data.imuYAccel = 0;
 	data.imuZAccel = 0;
+	data.lPos = 0;
+	data.rPos = 0;
 	data.end = PACKET_END;
 }
 

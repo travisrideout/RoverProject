@@ -1,0 +1,107 @@
+/*  
+* Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Purpose License Version 2 as
+* published by the Free Software Foundation
+*
+* Original from: github.com/jadonk/validation-scripts/blob/master/test-capemgr/ 
+*
+* Modified by Derek Molloy for the example on www.derekmolloy.ie
+* that maps GPIO pins for the example
+*/
+
+/dts-v1/;
+/plugin/;
+
+/{
+       compatible = "ti,beaglebone", "ti,beaglebone-black";
+       part-number = "DM-GPIO-Rover5";
+       version = "00A0";
+       exclusive-use =
+                "P9.14",
+                "P9.17",
+                "P9.18",
+                "P9.24",
+                "P9.27",
+                "P8.39",
+                "P8.40",
+                "P8.41",
+                "P8.42",
+                "P8.43",
+                "P8.44",
+                "P8.45",
+                "P8.46",
+                "pru0",
+                "pru1";
+
+       fragment@0 {
+             target = <&am33xx_pinmux>;            
+             __overlay__ {
+                  pru_gpio_pins: pinmux_pru_gpio_pins {
+					pinctrl-single,pins = <
+						0x048 0x07 		/*  P9_14 50 OUTPUT MODE7 - LED test on pin 14			
+						/* 0x078 0x07 */ /* P9_12 60 OUTPUT MODE7 - The LED Output */
+						/* 0x184 0x2f */ /* P9_24 15 INPUT  MODE7 none     - The Button Input */
+						/* 0x034 0x37 */ /* P8_11 45 INPUT  MODE7 pullup   - Yellow Wire */
+						/* 0x030 0x27 */ /* P8_12 44 INPUT  MODE7 pulldown - Green Wire */
+						/* 0x024 0x2f */  /* P8_13 23 INPUT  MODE7 none     - White Wire */
+                       
+                  		/* OUTPUT  GPIO(mode7) 0x07 pulldown, 0x17 pullup, 0x?f no pullup/down */
+			      		/* INPUT   GPIO(mode7) 0x27 pulldown, 0x37 pullup, 0x?f no pullup/down */
+					>;
+		 		};
+		  		pru_pru_pins: pinmux_pru_pru_pins {
+               		pinctrl-single,pins = <
+               			0x184 0x26  /*  P9_24 15 INPUT MODE6 - PRU pr1_pru0_pru_r31_16 */
+						0x1a4 0x05  /*  P9_27 115 OUTPUT MODE5 - PRU pr1_pru0_pru_r30_5 pulldown */
+						0x0b8 0x26  /*  P8_39 76 INPUT MODE6 - PRU pr1_pru1_pru_r31_6 */
+						0x0bc 0x26  /*  P8_40 77 INPUT MODE6 - PRU pr1_pru1_pru_r31_7 */
+						0x0b0 0x26  /*  P8_41 74 INPUT MODE6 - PRU pr1_pru1_pru_r31_4 */
+						0x0b4 0x26  /*  P8_42 75 INPUT MODE6 - PRU pr1_pru1_pru_r31_5 */
+						0x0a8 0x05	/*  P8_43 72 OUTPUT MODE5 - PRU pr1_pru1_pru_r30_2 pulldown */
+						0x0ac 0x05	/*  P8_44 73 OUTPUT MODE5 - PRU pr1_pru1_pru_r30_3 pulldown */
+						0x0a0 0x05	/*  P8_45 70 OUTPUT MODE5 - PRU pr1_pru1_pru_r30_0 pulldown */
+						0x0a4 0x05	/*  P8_46 71 OUTPUT MODE5 - PRU pr1_pru1_pru_r30_1 pulldown */
+               		>;
+               	};	
+               	pru_i2c1_pins: pinmux_pru_i2c_pins {
+               		pinctrl-single,pins = <
+                    	0x158 0x72      /* 9_18 4 I2C1_SDA uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE2 */
+                    	0x15c 0x72      /* P9_17 5 I2C1_SCL uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE2 */
+                     >;
+               	};
+            };
+       };
+       
+       fragment@1 {
+       		target = <&ocp>;
+            __overlay__ {
+            	test_helper: helper {
+            		compatible = "bone-pinmux-helper";            		
+                	pinctrl-names = "default";
+                	pinctrl-0 = <&pru_gpio_pins>;
+                	status = "okay";
+                };
+			};
+		};
+
+       	fragment@2 {
+       		target = <&pruss>;
+            __overlay__ {
+            	status = "okay";
+                pinctrl-names = "default";
+                pinctrl-0 = <&pru_pru_pins>;
+			};
+		};
+		
+		fragment@3 {
+       		target = <&i2c1>; 
+            __overlay__ {
+            	pinctrl-names = "default";
+    			pinctrl-0 = <&pru_i2c1_pins>;
+    			status = "okay";
+    			clock-frequency = <100000>;
+			};
+		};		
+};
