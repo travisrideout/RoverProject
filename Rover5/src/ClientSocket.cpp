@@ -26,7 +26,7 @@ void* ClientSocket::StartClient(){
 
 	host_info.ai_family = AF_UNSPEC;     		// IP version not specified. Can be both.
 	host_info.ai_socktype = SOCK_STREAM; 		// Use SOCK_STREAM for TCP or SOCK_DGRAM for UDP.
-	status = getaddrinfo("192.168.200.102", "12345",
+	status = getaddrinfo("192.168.200.107", "12345",
 			&host_info, &host_info_list); 		//assign IP and port values
 	if (status != 0){							// check if the address was assigned correctly
 		std::cout << "getaddrinfo error" << gai_strerror(status) ;
@@ -92,8 +92,7 @@ int ClientSocket::UseMessageData(){
 	scratch_vars.lPWMDuty = msgRecvData.lDutyCmd;
 	scratch_vars.rPWMDuty = msgRecvData.rDutyCmd;
 	pru.SetMotionVars(&scratch_vars);
-	std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tL_POS = " << pru.GetLeftPos()
-				<< "\tR_DIR = " << msgRecvData.rDirCmd << "\tR_POS = " << pru.GetRightPos()
+	std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tR_DIR = " << msgRecvData.rDirCmd
 				<< "\tL_Duty = " << msgRecvData.lDutyCmd << "\tR_Duty = " << msgRecvData.rDutyCmd
 				<< std::endl;
 	return 0;

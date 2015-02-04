@@ -69,10 +69,6 @@ int main() {
 			pthread_mutex_unlock(&Lock);
 			imu.readFullSensorState();
 		}
-		if (!communicating) {
-			std::cout << "L_POS = " << pru.GetLeftPos()
-					<< "\tR_POS = " << pru.GetRightPos() << std::endl;
-		}
 	}
 
 	/*cout << "Preparing to flash an LED on pin P8_14" << endl;
