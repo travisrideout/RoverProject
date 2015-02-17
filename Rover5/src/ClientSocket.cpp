@@ -19,6 +19,12 @@ void* ClientSocket::ClientThreadStarter(void* context){
 void* ClientSocket::StartClient(){
 	std::cout << "Starting Client" << std::endl;
 
+	if(ip == NULL || port == NULL){
+		std::cerr << "enter an ip address and port when launching program" << std::endl;
+		socketAlive = false;
+		return 0;
+	}
+
 	int status;
 	struct addrinfo host_info;      			// The struct that getaddrinfo() fills up with data.
 	struct addrinfo *host_info_list; 			// Pointer to the linked list of host_info's.
@@ -26,7 +32,7 @@ void* ClientSocket::StartClient(){
 
 	host_info.ai_family = AF_UNSPEC;     		// IP version not specified. Can be both.
 	host_info.ai_socktype = SOCK_STREAM; 		// Use SOCK_STREAM for TCP or SOCK_DGRAM for UDP.
-	status = getaddrinfo("192.168.200.107", "12345",
+	status = getaddrinfo(ip, port,
 			&host_info, &host_info_list); 		//assign IP and port values
 	if (status != 0){							// check if the address was assigned correctly
 		std::cout << "getaddrinfo error" << gai_strerror(status) ;
@@ -40,8 +46,9 @@ void* ClientSocket::StartClient(){
 		std::cout << "socket error " ;
 	}
 
-	std::cout << "Connecting..."  << std::endl;
+	std::cout << "Connecting to " << ip << " " << port << std::endl;
 	status = connect(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen); //wait here for connection
+	std::cout <<"status was = " << status << std::endl;
 	if (status == -1){
 		std::cout << "connect error";
 	}else if (status == 0){

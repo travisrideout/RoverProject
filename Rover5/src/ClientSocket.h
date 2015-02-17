@@ -22,6 +22,8 @@ extern bool socketAlive;
 extern bool communicating;
 extern pthread_mutex_t Lock;
 extern PRU pru;
+extern const char* ip;
+extern const char* port;
 
 class ClientSocket {
 public:

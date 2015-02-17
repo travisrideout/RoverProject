@@ -27,6 +27,8 @@ pthread_mutex_t Lock;
 PRU pru;
 ClientSocket tcp;
 IMU imu (2, 0x68);
+const char* ip = NULL;
+const char* port = NULL;
 
 void ForcedClose(int x){
 	pru.~PRU();
@@ -34,7 +36,10 @@ void ForcedClose(int x){
 	std::cout<<"Forced Close"<<std::endl;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+	std::cout << "the passed argc is = " << argc << ", the passed argv is = " << argv[1] << std::endl;
+	ip = argv[1];
+	port = argv[2];
 	void* status;
 	pthread_t clientThread;			// create a thread object for threading
 	pthread_mutex_init(&Lock, NULL);	// initialize thread mutex
