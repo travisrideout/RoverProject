@@ -69,11 +69,11 @@ int main(int argc, char *argv[]) {
 			scratch_vars.imuZAccel = imu.getAccelerationZ();
 			scratch_vars.lPos = pru.GetLeftPos();
 			scratch_vars.rPos = pru.GetRightPos();
+
 			tcp.SetMessageVars(&scratch_vars);
 			pthread_mutex_unlock(&Lock);
 			imu.readFullSensorState();
 		}
-		usleep(200);
 	}
 
 	/*cout << "Preparing to flash an LED on pin P8_14" << endl;
