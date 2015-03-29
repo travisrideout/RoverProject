@@ -20,9 +20,10 @@ void* ClientSocket::StartClient(){
 	std::cout << "Starting Client" << std::endl;
 
 	if(ip == NULL || port == NULL){
-		std::cerr << "enter an ip address and port when launching program" << std::endl;
-		socketAlive = false;
-		return 0;
+		std::cerr << "Using default ip and port" << std::endl;
+		std::cerr << "To use non-default, enter an ip address and port when launching program" << std::endl;
+		ip = "192.168.200.151";
+		port = "12345";
 	}
 
 	int status;
@@ -66,13 +67,7 @@ void* ClientSocket::StartClient(){
 		send(socketfd, msg, PACKET_SIZE, 0);
 		bytes_recieved = recv(socketfd, msg, PACKET_SIZE, 0);
 		// If no data arrives, the program will just wait here until some data arrives.
-		if (bytes_recieved == 0) {
-			std::cout << "host shut down." << std::endl;
-			communicating = false;
-			break;
-		}
-		if (bytes_recieved == -1){
-			std::cout << "Receive error!" << std::endl;
+		if(bytes_recieved<1){
 			communicating = false;
 			break;
 		}
@@ -81,12 +76,21 @@ void* ClientSocket::StartClient(){
 		UseMessageData();
 	}while(bytes_recieved>0);
 
+	if (bytes_recieved == 0) {
+		std::cout << "host shut down." << std::endl;
+	}
+	if (bytes_recieved == -1){
+		std::cout << "Receive error!" << std::endl;
+	}
+
+	SafeStop();	//E-STOP system
+
 	std::cout << "Receiving complete. Closing socket..." << std::endl;
 	freeaddrinfo(host_info_list);
 	close(socketfd);
 
 	socketAlive = false;
-	std::cout << "Thread ending" << std::endl;
+	std::cout << "Socket thread ending" << std::endl;
 
 	return 0;
 }
@@ -99,9 +103,26 @@ int ClientSocket::UseMessageData(){
 	scratch_vars.lPWMDuty = msgRecvData.lDutyCmd;
 	scratch_vars.rPWMDuty = msgRecvData.rDutyCmd;
 	pru.SetMotionVars(&scratch_vars);
-	std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tR_DIR = " << msgRecvData.rDirCmd
+	/*std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tR_DIR = " << msgRecvData.rDirCmd
 				<< "\tL_Duty = " << msgRecvData.lDutyCmd << "\tR_Duty = " << msgRecvData.rDutyCmd
-				<< std::endl;
+				<< std::endl;*/
+	return 0;
+}
+
+//E-STOP system - sets motion commands to 0
+int ClientSocket::SafeStop(){
+	PRU::motion_struct scratch_vars;
+	pru.GetMotionVars(&scratch_vars);
+	scratch_vars.lDir = 0;
+	scratch_vars.rDir = 0;
+	scratch_vars.lPWMDuty = 0;
+	scratch_vars.rPWMDuty = 0;
+	if(pru.SetMotionVars(&scratch_vars)!=1){
+		std::cerr << "failed to E_STOP system" << std::endl;
+	}else{
+		std::cerr << "System E-STOP" << std::endl;
+	}
+	usleep(500000);		//make sure PRU has time to issue command
 	return 0;
 }
 

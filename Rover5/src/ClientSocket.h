@@ -31,7 +31,6 @@ public:
 
 	void* StartClient();
 	static void* ClientThreadStarter(void*);
-	int UseMessageData();
 
 	//Message modifiers
 	int GetMessageVars(data_struct*);
@@ -40,6 +39,9 @@ public:
 	virtual ~ClientSocket();
 
 private:
+	int UseMessageData();
+	int SafeStop();
+
 	data_struct msgSendData;
 	data_struct msgRecvData;
 	char msg[PACKET_SIZE];

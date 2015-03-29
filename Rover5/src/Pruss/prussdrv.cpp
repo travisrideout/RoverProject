@@ -632,21 +632,21 @@ void *prussdrv_get_virt_addr(unsigned int phyaddr)
     if ((phyaddr >= prussdrv.pru0_dataram_phy_base)
         && (phyaddr <
             prussdrv.pru0_dataram_phy_base + prussdrv.pruss_map_size)) {
-        address =
+    	/*address =
             (void *) ((unsigned int) prussdrv.pru0_dataram_base +
-                      (phyaddr - prussdrv.pru0_dataram_phy_base));
+                      (phyaddr - prussdrv.pru0_dataram_phy_base));*/
     } else if ((phyaddr >= prussdrv.l3ram_phys_base)
                && (phyaddr <
                    prussdrv.l3ram_phys_base + prussdrv.l3ram_map_size)) {
-        address =
+    	/*address =
             (void *) ((unsigned int) prussdrv.l3ram_base +
-                      (phyaddr - prussdrv.l3ram_phys_base));
+                      (phyaddr - prussdrv.l3ram_phys_base));*/
     } else if ((phyaddr >= prussdrv.extram_phys_base)
                && (phyaddr <
                    prussdrv.extram_phys_base + prussdrv.extram_map_size)) {
-        address =
+    	/*address =
             (void *) ((unsigned int) prussdrv.extram_base +
-                      (phyaddr - prussdrv.extram_phys_base));
+                      (phyaddr - prussdrv.extram_phys_base));*/
     }
     return address;
 

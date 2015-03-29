@@ -37,7 +37,6 @@ void ForcedClose(int x){
 }
 
 int main(int argc, char *argv[]) {
-	std::cout << "the passed argc is = " << argc << ", the passed argv is = " << argv[1] << std::endl;
 	ip = argv[1];
 	port = argv[2];
 	void* status;
@@ -74,6 +73,7 @@ int main(int argc, char *argv[]) {
 			pthread_mutex_unlock(&Lock);
 			imu.readFullSensorState();
 		}
+		usleep(200);
 	}
 
 	/*cout << "Preparing to flash an LED on pin P8_14" << endl;
