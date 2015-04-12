@@ -73,7 +73,7 @@ int PRU::GetPing(){
 		}
 	}while(!ping_ready);									//if there's no data ready stay in loop
 	duration = sharedMem_int[OFFSET_SHAREDRAM+3];			//get ping duration from shared RAM
-	distance = (duration*4*5*340.29*100)/(1000000000*2);	//calculate distance from duration
+	distance = (duration*4*5*340.29*100)/(1000000000*2);	//calculate distance from duration cm's
 	ping_counter = sharedMem_int[OFFSET_SHAREDRAM+4];		//get ping count
 	sharedMem_int[OFFSET_SHAREDRAM+5] = 0;					//let .p know ready for another ping
 	return distance;

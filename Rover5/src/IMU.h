@@ -14,31 +14,45 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-//#include <stropts.h>
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
 
 #define BMA180_I2C_BUFFER 0x75	//was 0x80
 #define MAX_BUS 	64
-#define ACC_X_LSB 	0x3C
 #define ACC_X_MSB 	0x3B
-#define ACC_Y_LSB 	0x3E
+#define ACC_X_LSB 	0x3C
 #define ACC_Y_MSB 	0x3D
-#define ACC_Z_LSB 	0x40
+#define ACC_Y_LSB 	0x3E
 #define ACC_Z_MSB 	0x3F
-#define TEMP_LSB  	0x42  //Temperature
+#define ACC_Z_LSB 	0x40
 #define TEMP_MSB  	0x41
-#define RANGE	  	0x35  //bits 3,2,1
-#define BANDWIDTH 	0x20  //bits 7,6,5,4
-#define MODE_CONFIG 0x30  //bits 1,0
+#define TEMP_LSB  	0x42  //Temperature
+#define GYRO_X_MSB	0x43
+#define GYRO_X_LSB	0x44
+#define GYRO_Y_MSB	0x45
+#define GYRO_Y_LSB	0x46
+#define GYRO_Z_MSB	0x47
+#define GYRO_Z_LSB	0x48
+
+#define	GYRO_RANGE	0x1b	//bits 4,3
+#define ACCEL_RANGE	0x1C  	//bits 4,3
+#define BANDWIDTH 	0x20  	//bits 7,6,5,4
+#define MODE_CONFIG 0x30  	//bits 1,0
 #define SLEEP		0x6B
 
-enum IMU_SCALE {
+enum IMU_SCALE_ACCEL {
 	PLUSMINUS_2G 		= 0,
 	PLUSMINUS_4G 		= 1,
 	PLUSMINUS_8G 		= 2,
 	PLUSMINUS_16G 		= 3
+};
+
+enum IMU_SCALE_GYRO {
+	PLUSMINUS_250 		= 0,
+	PLUSMINUS_500 		= 1,
+	PLUSMINUS_1000 		= 2,
+	PLUSMINUS_2000 		= 3
 };
 
 //this is sample rate register 25 in IMU
@@ -66,19 +80,19 @@ private:
 	int I2CBus, I2CAddress;
 	char dataBuffer[BMA180_I2C_BUFFER];
 
-	int accelerationX;
-	int accelerationY;
-	int accelerationZ;
+	int accelerationX, accelerationY, accelerationZ;
+	int gyroX, gyroY, gyroZ;
 
 	double pitch;  //in degrees
 	double roll;   //in degrees
 
 	float temperature; //accurate to 0.5C
-	IMU_SCALE range;
+	IMU_SCALE_ACCEL accel_range;
+	IMU_SCALE_GYRO gyro_range;
 	BMA180_BANDWIDTH bandwidth;
 	BMA180_MODECONFIG modeConfig;
 
-	int  convertAcceleration(int msb_addr, int lsb_addr);
+	int  fuseBytes(int msb_addr, int lsb_addr);
 	int  writeI2CDeviceByte(char address, char value);
 	//char readI2CDeviceByte(char address);
 	void calculatePitchAndRoll();
@@ -90,8 +104,11 @@ public:
 
 	int  readFullSensorState();
 	// The following do physical reads and writes of the sensors
-	int setRange(IMU_SCALE range);
-	IMU_SCALE getRange();
+	int setAccelRange(IMU_SCALE_ACCEL accel_range);
+	IMU_SCALE_ACCEL getAccelRange();
+	int setGyroRange(IMU_SCALE_GYRO gyro_range);
+	IMU_SCALE_GYRO getGyroRange();
+
 	int setBandwidth(BMA180_BANDWIDTH bandwidth);
 	BMA180_BANDWIDTH getBandwidth();
 	int setModeConfig(BMA180_MODECONFIG mode);
@@ -101,6 +118,10 @@ public:
 	int getAccelerationX() {return accelerationX;}
 	int getAccelerationY() {return accelerationY;}
 	int getAccelerationZ() {return accelerationZ;}
+
+	int getGyroX() {return gyroX;}
+	int getGyroY() {return gyroY;}
+	int getGyroZ() {return gyroZ;}
 
 	float getPitch() { return pitch; }  // in degrees
 	float getRoll() { return roll; }  // in degrees

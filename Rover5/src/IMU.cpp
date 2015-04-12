@@ -64,22 +64,19 @@ int IMU::readFullSensorState(){
     	std::cout << "MAJOR FAILURE: DATA WITH IMU HAS LOST SYNC! " << std::endl;
     }
 
-    //cout << "Number of bytes read was " << bytesRead << endl;
-    //for (int i=0; i<8; i++){
-    //       printf("Byte %02d is 0x%02x\n", i, dataBuffer[i]);
-    //}
-    //cout << "Closing BMA180 I2C sensor state read" << endl;
+    this->accelerationX = fuseBytes(ACC_X_MSB, ACC_X_LSB);
+    this->accelerationY = fuseBytes(ACC_Y_MSB, ACC_Y_LSB);
+    this->accelerationZ = fuseBytes(ACC_Z_MSB, ACC_Z_LSB);
+    this->gyroX = fuseBytes(GYRO_X_MSB, GYRO_X_LSB);
+    this->gyroY = fuseBytes(GYRO_Y_MSB, GYRO_Y_LSB);
+    this->gyroZ = fuseBytes(GYRO_Z_MSB, GYRO_Z_LSB);
 
-    this->accelerationX = convertAcceleration(ACC_X_MSB, ACC_X_LSB);
-    this->accelerationY = convertAcceleration(ACC_Y_MSB, ACC_Y_LSB);
-    this->accelerationZ = convertAcceleration(ACC_Z_MSB, ACC_Z_LSB);
-
-    this->calculatePitchAndRoll();
+    //this->calculatePitchAndRoll();
     //cout << "Pitch:" << this->getPitch() << "   Roll:" << this->getRoll() <<  endl;
     return 0;
 }
 
-int IMU::convertAcceleration(int msb_reg_addr, int lsb_reg_addr){
+int IMU::fuseBytes(int msb_reg_addr, int lsb_reg_addr){
 	//std::cout << "Converting " << (int) dataBuffer[msb_reg_addr] << " and " << (int) dataBuffer[lsb_reg_addr] << std::endl;
 	short temp = dataBuffer[msb_reg_addr];
 	temp = (temp<<8) | dataBuffer[lsb_reg_addr];
@@ -123,48 +120,55 @@ float IMU::getTemperature(){
 	return this->temperature;
 }
 
-/*int IMU::getAccelerationX() {
-	unsigned short x;
-	x = (float)accelerationX/16.384;
-	return x;
-	return accelerationX;
-}
-
-int IMU::getAccelerationY() {
-	unsigned short y;
-	y = (float)accelerationY/16.384;
-	return y;
-	return accelerationY;
-}
-
-int IMU::getAccelerationZ() {
-	unsigned short z;
-	z = (float)accelerationZ/16.384;
-	return z;
-	return accelerationZ;
-}*/
-
+//TODO Don't think these actually work
 //update to match IMU registers
-IMU_SCALE IMU::getRange(){
+IMU_SCALE_ACCEL IMU::getAccelRange(){
 	this->readFullSensorState();
-	char temp = dataBuffer[RANGE];
+	char temp = dataBuffer[ACCEL_RANGE];
 	//char temp = this->readI2CDeviceByte(RANGE);  //bits 3,2,1
-	temp = temp & 0b00001110;
-	temp = temp>>1;
+	temp = temp & 0b00000000;
+	temp = temp>>3;
 	//cout << "The current range is: " << (int)temp << endl;
-	this->range = (IMU_SCALE) temp;
-	return this->range;
+	this->accel_range = (IMU_SCALE_ACCEL) temp;
+	return this->accel_range;
 }
 
 //update to match IMU registers
-int IMU::setRange(IMU_SCALE range){
+int IMU::setAccelRange(IMU_SCALE_ACCEL accel_range){
 	//char current = this->readI2CDeviceByte(RANGE);  //bits 3,2,1
 	this->readFullSensorState();
-	char current = dataBuffer[RANGE];
-	char temp = range << 1; //move value into bits 3,2,1
-	current = current & 0b11110001; //clear the current bits 3,2,1
+	char current = dataBuffer[ACCEL_RANGE];
+	char temp = accel_range << 3; //move value into bits 4,3
+	current = current & 0b00000000; //clear the current bits 3,2,1
 	temp = current | temp;
-	if(this->writeI2CDeviceByte(RANGE, temp)!=0){
+	if(this->writeI2CDeviceByte(ACCEL_RANGE, temp)!=0){
+		std::cout << "Failure to update RANGE value" << std::endl;
+		return 1;
+	}
+	return 0;
+}
+
+//update to match IMU registers
+IMU_SCALE_GYRO IMU::getGyroRange(){
+	this->readFullSensorState();
+	char temp = dataBuffer[GYRO_RANGE];
+	//char temp = this->readI2CDeviceByte(RANGE);  //bits 3,2,1
+	temp = temp & 0b00000000;
+	temp = temp>>3;
+	//cout << "The current range is: " << (int)temp << endl;
+	this->gyro_range = (IMU_SCALE_GYRO) temp;
+	return this->gyro_range;
+}
+
+//update to match IMU registers
+int IMU::setGyroRange(IMU_SCALE_GYRO range){
+	//char current = this->readI2CDeviceByte(RANGE);  //bits 3,2,1
+	this->readFullSensorState();
+	char current = dataBuffer[GYRO_RANGE];
+	char temp = range << 3; //move value into bits 4,3
+	current = current & 0b00000000; //clear the current bits 4,3
+	temp = current | temp;
+	if(this->writeI2CDeviceByte(GYRO_RANGE, temp)!=0){
 		std::cout << "Failure to update RANGE value" << std::endl;
 		return 1;
 	}
