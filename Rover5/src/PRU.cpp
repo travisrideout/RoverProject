@@ -12,7 +12,7 @@
 static void *sharedMem;
 static unsigned int *sharedMem_int;
 
-PRU::PRU() {
+PRU::PRU():error_cnt(0) {
 	tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
 	prussdrv_init (); 									//Initialize the PRU
 	unsigned int ret;
@@ -68,7 +68,8 @@ int PRU::GetPing(){
 		ping_ready = sharedMem_int[OFFSET_SHAREDRAM+5];		//see if there's ping data in shared RAM
 		timeout++;
 		if(timeout>1000){									//error check timeout
-			std::cerr << "PING PRU TIMEOUT" << std::endl;
+			error_cnt++;
+			std::cerr << "PING PRU TIMEOUT " << error_cnt << std::endl;
 			return -1;
 		}
 	}while(!ping_ready);									//if there's no data ready stay in loop

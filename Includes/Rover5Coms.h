@@ -13,7 +13,7 @@
 #include <iomanip>			// for hex
 #include <stdio.h>			// for sscanf
 
-#define PACKET_SIZE		68		//52	// total # of characters in packet, characters because socket sends char[]
+#define PACKET_SIZE		80			// total # of characters in packet, characters because socket sends char[]
 #define BLOCK_SIZE		4 			// # of characters per variable
 #define PACKET_START 	"STRT"		// start string used for checking packet start
 #define PACKET_END		"END0\0" 	// end string used for checking packet end
@@ -33,6 +33,9 @@ enum Data {
 	IMU_X_ACCEL,
 	IMU_Y_ACCEL,
 	IMU_Z_ACCEL,
+	IMU_X_GYRO,
+	IMU_Y_GYRO,
+	IMU_Z_GYRO,
 	L_POS_HIGH,
 	L_POS_LOW,
 	R_POS_HIGH,
@@ -53,6 +56,9 @@ typedef struct data_struct {
 	short imuXAccel;
 	short imuYAccel;
 	short imuZAccel;
+	short imuXGyro;
+	short imuYGyro;
+	short imuZGyro;
 	int lPos;
 	int rPos;
 	std::string end;
@@ -74,6 +80,9 @@ inline int PrepareSendPacket(char msg[], data_struct &data){
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuXAccel;
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuYAccel;
 	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuZAccel;
+	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuXGyro;
+	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuYGyro;
+	ssprepare << std::setw(4) << std::setfill('0') << std::hex << data.imuZGyro;
 	ssprepare << std::setw(8) << std::setfill('0') << std::hex << data.lPos;
 	ssprepare << std::setw(8) << std::setfill('0') << std::hex << data.rPos;
 	ssprepare << data.end;
@@ -128,6 +137,15 @@ inline int ParseRecvPacket(char msg[], data_struct &data){
 		case IMU_Z_ACCEL: sscanf(blockRead,"%hx",&myVar);
 			data.imuZAccel = myVar;
 			break;
+		case IMU_X_GYRO: sscanf(blockRead,"%hx",&myVar);
+			data.imuXGyro = myVar;
+			break;
+		case IMU_Y_GYRO: sscanf(blockRead,"%hx",&myVar);
+			data.imuYGyro = myVar;
+			break;
+		case IMU_Z_GYRO: sscanf(blockRead,"%hx",&myVar);
+			data.imuZGyro = myVar;
+			break;
 		case L_POS_HIGH:	memcpy(intBlockTemp,&blockRead[0],BLOCK_SIZE);
 			break;
 		case L_POS_LOW:
@@ -173,6 +191,9 @@ inline void InitializeMessageData(data_struct &data){
 	data.imuXAccel = 0;
 	data.imuYAccel = 0;
 	data.imuZAccel = 0;
+	data.imuXGyro = 0;
+	data.imuYGyro = 0;
+	data.imuZGyro = 0;
 	data.lPos = 0;
 	data.rPos = 0;
 	data.end = PACKET_END;

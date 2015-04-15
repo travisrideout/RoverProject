@@ -65,6 +65,8 @@ public:
 private:
 	sonar_struct sonar_vars;
 	motion_struct motion_vars;
+
+	int error_cnt;
 };
 
 #endif /* PRU_H_ */

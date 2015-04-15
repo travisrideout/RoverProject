@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 			if(count>pingDelay){									//time delay to avoid ping echo
 				scratch_vars.pingDist = pru.GetPing();
 				count = 0;
-				if(scratch_vars.pingDist<1000){						//avoid bad ping delay
+				if(scratch_vars.pingDist<5000){						//avoid bad ping delay
 					pingDelay = scratch_vars.pingDist/20;			//dynamically set ping delay, close = short delay
 				}
 			}else{
