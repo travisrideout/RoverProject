@@ -20,6 +20,7 @@
 
 extern bool socketAlive;
 extern bool communicating;
+extern bool ready4data;
 extern pthread_mutex_t Lock;
 extern PRU pru;
 extern const char* ip;

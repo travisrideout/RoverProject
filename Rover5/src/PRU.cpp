@@ -57,7 +57,7 @@ PRU::PRU():error_cnt(0) {
 }
 
 // returns a ping distance in cm
-// calls close to each other my corrupted by echo returns, call at least 200ms apart
+// calls close to each other may be corrupted by echo returns, call at least 200ms apart
 int PRU::GetPing(){
 	unsigned int duration;
 	unsigned short distance;
@@ -65,12 +65,13 @@ int PRU::GetPing(){
 	int ping_counter = 0;
 	int timeout = 0;
 	do{
+		usleep(1000);
 		ping_ready = sharedMem_int[OFFSET_SHAREDRAM+5];		//see if there's ping data in shared RAM
 		timeout++;
-		if(timeout>1000){									//error check timeout
+		if(timeout>100000){									//error check timeout
 			error_cnt++;
 			std::cerr << "PING PRU TIMEOUT " << error_cnt << std::endl;
-			return -1;
+			return 0;
 		}
 	}while(!ping_ready);									//if there's no data ready stay in loop
 	duration = sharedMem_int[OFFSET_SHAREDRAM+3];			//get ping duration from shared RAM

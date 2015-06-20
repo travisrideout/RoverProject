@@ -60,20 +60,23 @@ void* ClientSocket::StartClient(){
 	ssize_t bytes_recieved;
 	do{
 		// TODO need to add error check here
-		pthread_mutex_lock(&Lock);
-		PrepareSendPacket(msg, msgSendData);
-		pthread_mutex_unlock(&Lock);
-		//std::cout << "Send message = " << msg << std::endl;
-		send(socketfd, msg, PACKET_SIZE, 0);
-		bytes_recieved = recv(socketfd, msg, PACKET_SIZE, 0);
-		// If no data arrives, the program will just wait here until some data arrives.
-		if(bytes_recieved<1){
-			communicating = false;
-			break;
+		if(!ready4data){
+			pthread_mutex_lock(&Lock);
+			PrepareSendPacket(msg, msgSendData);
+			pthread_mutex_unlock(&Lock);
+			ready4data = true;		//ready for new data to pack next message
+			//std::cout << "Send message = " << msg << std::endl;
+			send(socketfd, msg, PACKET_SIZE, 0);
+			bytes_recieved = recv(socketfd, msg, PACKET_SIZE, 0);
+			// If no data arrives, the program will just wait here until some data arrives.
+			if(bytes_recieved<1){
+				communicating = false;
+				break;
+			}
+			//std::cout << "Recv message = " << msg << std::endl;
+			ParseRecvPacket(msg, msgRecvData);
+			UseMessageData();
 		}
-		//std::cout << "Recv message = " << msg << std::endl;
-		ParseRecvPacket(msg, msgRecvData);
-		UseMessageData();
 	}while(bytes_recieved>0);
 
 	if (bytes_recieved == 0) {
