@@ -7,19 +7,62 @@
 
 #include "IMU.h"
 
-IMU::IMU(int bus, int address) {
+IMU::IMU(int bus, int address):gyroXoffset(0), gyroYoffset(0), gyroZoffset(0),
+	accelXoffset(0), accelYoffset(0) {
 	I2CBus = bus;
 	I2CAddress = address;
 	wake();
+	setAccelRange(PLUSMINUS_4G);
+	setGyroRange(PLUSMINUS_250);
+	calibrate();
 	readFullSensorState();
 }
 
 int IMU::wake(){
+	std::cout << "Waking IMU" << std::endl;
 	if(this->writeI2CDeviceByte(SLEEP, 0x00)!=0){
 		std::cout << "Failure to wake IMU" << std::endl;
 		return 1;
 	}
 	return 0;
+}
+
+void IMU::calibrate(){
+	long gyroXsum = 0;
+	long gyroYsum = 0;
+	long gyroZsum = 0;
+	long accelXsum = 0;
+	long accelYsum = 0;
+	long accelZsum = 0;
+	std::cout << "Calibrating IMU " << std::flush;
+	for(int i=0;i<1000;i++){
+		this->readFullSensorState();
+		gyroXsum += this->gyroX;
+		gyroYsum += this->gyroY;
+		gyroZsum += this->gyroZ;
+		accelXsum += this->accelerationX;
+		accelYsum += this->accelerationY;
+		//TODO - dynamically scale z offset by getting range setting
+		accelZsum += this->accelerationZ + (32767/4);	//nom 1g, signed int_16 @ +/-4g range
+		if(i%100==0){
+			std::cout << "." << std::flush;
+		}
+		usleep(100);
+	}
+	std::cout << " done" << std::endl;
+	this->gyroXoffset = gyroXsum/1000;
+	this->gyroYoffset = gyroYsum/1000;
+	this->gyroZoffset = gyroZsum/1000;
+	this->accelXoffset = accelXsum/1000;
+	this->accelYoffset = accelYsum/1000;
+	this->accelZoffset = accelZsum/1000;
+	std::cout << "IMU calibration complete" << std::endl;
+	std::cout << "gyro X offset = " << this->gyroXoffset << std::endl;
+	std::cout << "gyro Y offset = " << this->gyroYoffset << std::endl;
+	std::cout << "gyro Z offset = " << this->gyroZoffset << std::endl;
+	std::cout << "accel X offset = " << this->accelXoffset << std::endl;
+	std::cout << "accel Y offset = " << this->accelYoffset << std::endl;
+	std::cout << "accel Z offset = " << this->accelZoffset << std::endl;
 }
 
 void IMU::calculatePitchAndRoll() {
@@ -141,6 +184,7 @@ int IMU::setAccelRange(IMU_SCALE_ACCEL accel_range){
 	char temp = accel_range << 3; //move value into bits 4,3
 	current = current & 0b00000000; //clear the current bits 3,2,1
 	temp = current | temp;
+	std::cout << "Setting IMU Accelerometer range" << std::endl;
 	if(this->writeI2CDeviceByte(ACCEL_RANGE, temp)!=0){
 		std::cout << "Failure to update RANGE value" << std::endl;
 		return 1;
@@ -168,6 +212,7 @@ int IMU::setGyroRange(IMU_SCALE_GYRO range){
 	char temp = range << 3; //move value into bits 4,3
 	current = current & 0b00000000; //clear the current bits 4,3
 	temp = current | temp;
+	std::cout << "Setting IMU Gyroscope range" << std::endl;
 	if(this->writeI2CDeviceByte(GYRO_RANGE, temp)!=0){
 		std::cout << "Failure to update RANGE value" << std::endl;
 		return 1;

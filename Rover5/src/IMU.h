@@ -96,6 +96,9 @@ private:
 	int  writeI2CDeviceByte(char address, char value);
 	//char readI2CDeviceByte(char address);
 	void calculatePitchAndRoll();
+	void calibrate();
+
+	int gyroXoffset, gyroYoffset, gyroZoffset, accelXoffset, accelYoffset, accelZoffset;
 
 public:
 	IMU(int bus, int address);
@@ -115,13 +118,13 @@ public:
 	BMA180_MODECONFIG getModeConfig();
 	float getTemperature();
 
-	int getAccelerationX() {return accelerationX;}
-	int getAccelerationY() {return accelerationY;}
-	int getAccelerationZ() {return accelerationZ;}
+	int getAccelerationX() {return accelerationX - accelXoffset;}
+	int getAccelerationY() {return accelerationY - accelYoffset;}
+	int getAccelerationZ() {return accelerationZ - accelZoffset;}
 
-	int getGyroX() {return gyroX;}
-	int getGyroY() {return gyroY;}
-	int getGyroZ() {return gyroZ;}
+	int getGyroX() {return gyroX - gyroXoffset;}
+	int getGyroY() {return gyroY - gyroYoffset;}
+	int getGyroZ() {return gyroZ - gyroZoffset;}
 
 	float getPitch() { return pitch; }  // in degrees
 	float getRoll() { return roll; }  // in degrees

@@ -51,7 +51,13 @@ void* ClientSocket::StartClient(){
 	status = connect(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen); //wait here for connection
 	std::cout <<"status was = " << status << std::endl;
 	if (status == -1){
-		std::cout << "connect error";
+		std::cout << "Connect error, Closing"<< std::endl;
+		SafeStop();	//E-STOP system
+		freeaddrinfo(host_info_list);
+		close(socketfd);
+		socketAlive = false;
+		std::cout << "Socket thread ending" << std::endl;
+		return 0;
 	}else if (status == 0){
 		std::cout << "Connected" << std::endl;
 		communicating = true;

@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 	data_struct scratch_vars;
 
 	int count = 0;
-	int pingDelay = 20;
+	int pingDelay = 15;
 	while (socketAlive){
 		while(communicating){
 			if (ready4data){		//only pack data if ready to send
@@ -61,17 +61,17 @@ int main(int argc, char *argv[]) {
 				if(count>pingDelay){									//time delay to avoid ping echo
 					scratch_vars.pingDist = pru.GetPing();
 					count = 0;
-					if(scratch_vars.pingDist<5000){						//avoid bad ping delay
+					/*if(scratch_vars.pingDist<5000){						//avoid bad ping delay
 						pingDelay = scratch_vars.pingDist/20;			//dynamically set ping delay, close = short delay
-					}
+					}*/
 				}else{
 					count++;
 				}
 				scratch_vars.imuXAccel = imu.getAccelerationX();
 				scratch_vars.imuYAccel = imu.getAccelerationY();
 				scratch_vars.imuZAccel = imu.getAccelerationZ();
-				scratch_vars.imuXGyro = imu.getGyroY();	//x/y swapped because of board mounting orientation
-				scratch_vars.imuYGyro = -imu.getGyroX();
+				scratch_vars.imuXGyro = imu.getGyroX();
+				scratch_vars.imuYGyro = -imu.getGyroY();
 				scratch_vars.imuZGyro = -imu.getGyroZ();
 				scratch_vars.lPos = pru.GetLeftPos();
 				scratch_vars.rPos = pru.GetRightPos();
