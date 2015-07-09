@@ -26,18 +26,21 @@ extern PRU pru;
 extern const char* ip;
 extern const char* port;
 
+extern bool tryConnect;
+
 class ClientSocket {
 public:
 	ClientSocket();
 
-	void* StartClient();
+	int StartClient();
+	void* TryConnect();
 	static void* ClientThreadStarter(void*);
 
 	//Message modifiers
 	int GetMessageVars(data_struct*);
 	int SetMessageVars(data_struct*);
 
-	virtual ~ClientSocket();
+	~ClientSocket();	//virtual
 
 private:
 	int UseMessageData();

@@ -14,7 +14,7 @@ IMU::IMU(int bus, int address):gyroXoffset(0), gyroYoffset(0), gyroZoffset(0),
 	wake();
 	setAccelRange(PLUSMINUS_4G);
 	setGyroRange(PLUSMINUS_250);
-	calibrate();
+	calibrateFromFile();
 	readFullSensorState();
 }
 
@@ -63,6 +63,41 @@ void IMU::calibrate(){
 	std::cout << "accel X offset = " << this->accelXoffset << std::endl;
 	std::cout << "accel Y offset = " << this->accelYoffset << std::endl;
 	std::cout << "accel Z offset = " << this->accelZoffset << std::endl;
+
+	std::ofstream myfile ("IMU_cal_values.txt");
+	  if (myfile.is_open())
+	  {
+	    myfile <<  this->gyroXoffset << std::endl;
+	    myfile <<  this->gyroYoffset << std::endl;
+	    myfile <<  this->gyroZoffset << std::endl;
+	    myfile <<  this->accelXoffset << std::endl;
+	    myfile << this->accelYoffset << std::endl;
+	    myfile <<  this->accelZoffset << std::endl;
+	    myfile.close();
+	    std::cout << "Values saved to file" << std::endl;
+	  }
+	  else std::cout << "Unable to open file";
+}
+
+void IMU::calibrateFromFile(){
+	std::ifstream myfile ("IMU_cal_values.txt", std::ios_base::in);
+	if (myfile.is_open())
+	{
+		myfile >>  this->gyroXoffset >>  this->gyroYoffset
+		>>  this->gyroZoffset >>  this->accelXoffset
+		>>  this->accelYoffset >>this->accelZoffset;
+		myfile.close();
+		std::cout << "IMU calibration values imported from file" << std::endl;
+	}
+	else std::cout << "Unable to open file";
+
+	std::cout << "gyro X offset = " << this->gyroXoffset << std::endl;
+	std::cout << "gyro Y offset = " << this->gyroYoffset << std::endl;
+	std::cout << "gyro Z offset = " << this->gyroZoffset << std::endl;
+	std::cout << "accel X offset = " << this->accelXoffset << std::endl;
+	std::cout << "accel Y offset = " << this->accelYoffset << std::endl;
+	std::cout << "accel Z offset = " << this->accelZoffset << std::endl;
+
 }
 
 void IMU::calculatePitchAndRoll() {

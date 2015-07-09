@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
+#include <fstream>
 
 #define BMA180_I2C_BUFFER 0x75	//was 0x80
 #define MAX_BUS 	64
@@ -96,13 +97,14 @@ private:
 	int  writeI2CDeviceByte(char address, char value);
 	//char readI2CDeviceByte(char address);
 	void calculatePitchAndRoll();
-	void calibrate();
+	void calibrateFromFile();
 
 	int gyroXoffset, gyroYoffset, gyroZoffset, accelXoffset, accelYoffset, accelZoffset;
 
 public:
 	IMU(int bus, int address);
 	int wake();
+	void calibrate();
 	void displayMode(int iterations);
 
 	int  readFullSensorState();
@@ -129,7 +131,7 @@ public:
 	float getPitch() { return pitch; }  // in degrees
 	float getRoll() { return roll; }  // in degrees
 
-	virtual ~IMU();
+	~IMU();		//virtual
 };
 
 #endif /* IMU_H_ */

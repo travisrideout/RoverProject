@@ -60,7 +60,7 @@ public:
 	int GetMotionVars(motion_struct*);
 	int SetMotionVars(motion_struct*);
 
-	virtual ~PRU();
+	~PRU();		//virtual
 
 private:
 	sonar_struct sonar_vars;

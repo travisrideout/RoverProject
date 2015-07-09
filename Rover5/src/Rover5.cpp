@@ -14,20 +14,24 @@
 #include "PRU.h"
 #include "IMU.h"
 #include "ClientSocket.h"
+#include "Menu.h"
 #include <Rover5Coms.h>
 #include <pthread.h>		// for threading
+//TODO switch from pthread to thread
+//TODO create task manager
 
 //unsigned int LEDGPIO = 50;   // GPIO1_18 = (1x32) + 18 = 50
 
 bool socketAlive = false;
 bool communicating = false;
 bool ready4data = true;
+bool tryConnect = true;
 
 pthread_mutex_t Lock;
 
-
 PRU pru;
 ClientSocket tcp;
+Menu menu;
 IMU imu (2, 0x68);
 const char* ip = NULL;
 const char* port = NULL;
@@ -41,13 +45,17 @@ void ForcedClose(int x){
 int main(int argc, char *argv[]) {
 	ip = argv[1];
 	port = argv[2];
-	void* status;
-	pthread_t clientThread;			// create a thread object for threading
+	void* status1;
+	void* status2;
+
+	pthread_t clientThread;				// create a thread id for coms
+	pthread_t menuThread;				// create a thread id for menu
 	pthread_mutex_init(&Lock, NULL);	// initialize thread mutex
 
 	pthread_create(&clientThread, NULL, &ClientSocket::ClientThreadStarter, &tcp);	//start thread for tcp object
+	pthread_create(&menuThread, NULL, &Menu::MenuThreadStarter, &menu);				//start thread for menu object
 
-	signal(SIGINT, &ForcedClose);	// to allow thread and pru deconstruction on ^c
+	//signal(SIGINT, &ForcedClose);	// to allow thread and pru deconstruction on ^c
 
 	data_struct scratch_vars;
 
@@ -107,8 +115,9 @@ int main(int argc, char *argv[]) {
 	//to launch exe
 	//system("./hellobone");
 
-	pthread_join(clientThread,&status);
-	std::cout << "Joining thread" << std::endl;
+	pthread_join(clientThread,&status1);
+	pthread_join(menuThread,&status2);
+	std::cout << "Joining threads" << std::endl;
 	pthread_mutex_destroy(&Lock);
 	std::cout << "Destroying mutex" << std::endl;
 

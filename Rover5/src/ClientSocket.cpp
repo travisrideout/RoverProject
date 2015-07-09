@@ -13,10 +13,25 @@ ClientSocket::ClientSocket() {
 }
 
 void* ClientSocket::ClientThreadStarter(void* context){
-	return ((ClientSocket *)context)->StartClient();
+	return ((ClientSocket *)context)->TryConnect();
 }
 
-void* ClientSocket::StartClient(){
+void* ClientSocket::TryConnect(){
+	while(1){
+		if(tryConnect){
+			std::cout << "entered tryConnect" << std::endl;
+			tryConnect = false;
+			int ret = StartClient();
+			std::cout << "returned from StartClient" << std::endl;
+			std::cout << ret << " " << tryConnect << std::endl;
+		}
+		sleep(1);
+	}
+	std::cout << "outside tryConnect" << std::endl;
+	return 0;
+}
+
+int ClientSocket::StartClient(){
 	std::cout << "Starting Client" << std::endl;
 
 	if(ip == NULL || port == NULL){
@@ -55,12 +70,18 @@ void* ClientSocket::StartClient(){
 		SafeStop();	//E-STOP system
 		freeaddrinfo(host_info_list);
 		close(socketfd);
-		socketAlive = false;
+		//socketAlive = false;
 		std::cout << "Socket thread ending" << std::endl;
-		return 0;
+		return -1;
 	}else if (status == 0){
 		std::cout << "Connected" << std::endl;
 		communicating = true;
+	}
+
+	//waiting for threads to catchup and fill data packet from main
+	//TODO has to be more elegant way to do this
+	while(ready4data){
+		sleep(1);
 	}
 
 	ssize_t bytes_recieved;
@@ -98,8 +119,10 @@ void* ClientSocket::StartClient(){
 	freeaddrinfo(host_info_list);
 	close(socketfd);
 
-	socketAlive = false;
-	std::cout << "Socket thread ending" << std::endl;
+	//TryConnect();
+
+	//socketAlive = false;
+	//std::cout << "Socket thread ending" << std::endl;
 
 	return 0;
 }
