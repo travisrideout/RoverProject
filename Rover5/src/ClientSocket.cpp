@@ -7,29 +7,11 @@
 
 #include "ClientSocket.h"
 
-ClientSocket::ClientSocket() {
+ClientSocket::ClientSocket(): host_info(addrinfo()),socketfd(0) {
 	InitializeMessageData(msgSendData);
-	socketAlive = true;
+	host_info_list = new addrinfo();
 }
 
-void* ClientSocket::ClientThreadStarter(void* context){
-	return ((ClientSocket *)context)->TryConnect();
-}
-
-void* ClientSocket::TryConnect(){
-	while(1){
-		if(tryConnect){
-			std::cout << "entered tryConnect" << std::endl;
-			tryConnect = false;
-			int ret = StartClient();
-			std::cout << "returned from StartClient" << std::endl;
-			std::cout << ret << " " << tryConnect << std::endl;
-		}
-		sleep(1);
-	}
-	std::cout << "outside tryConnect" << std::endl;
-	return 0;
-}
 
 int ClientSocket::StartClient(){
 	std::cout << "Starting Client" << std::endl;
@@ -41,9 +23,7 @@ int ClientSocket::StartClient(){
 		port = "12345";
 	}
 
-	int status;
-	struct addrinfo host_info;      			// The struct that getaddrinfo() fills up with data.
-	struct addrinfo *host_info_list; 			// Pointer to the linked list of host_info's.
+	short status;
 	memset(&host_info, 0, sizeof host_info);	//clear memory location assigned to host_info
 
 	host_info.ai_family = AF_UNSPEC;     		// IP version not specified. Can be both.
@@ -55,76 +35,48 @@ int ClientSocket::StartClient(){
 	}
 
 	std::cout << "Creating a socket..."  << std::endl;
-	int socketfd; 								// The socket descriptor
 	socketfd = socket(host_info_list->ai_family, host_info_list->ai_socktype,
 			host_info_list->ai_protocol);
 	if (socketfd == -1){
 		std::cout << "socket error " ;
+		return 0;
 	}
+	return 1;
+}
 
+int ClientSocket::Connect(){
+	short status;
 	std::cout << "Connecting to " << ip << " " << port << std::endl;
 	status = connect(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen); //wait here for connection
 	std::cout <<"status was = " << status << std::endl;
 	if (status == -1){
-		std::cout << "Connect error, Closing"<< std::endl;
+		std::cout << "Connect to Server Failed"<< std::endl;
 		SafeStop();	//E-STOP system
-		freeaddrinfo(host_info_list);
-		close(socketfd);
-		//socketAlive = false;
-		std::cout << "Socket thread ending" << std::endl;
-		return -1;
+		return 0;
 	}else if (status == 0){
 		std::cout << "Connected" << std::endl;
-		communicating = true;
 	}
+	return 1;
+}
 
-	//waiting for threads to catchup and fill data packet from main
-	//TODO has to be more elegant way to do this
-	while(ready4data){
-		sleep(1);
-	}
-
+int ClientSocket::Transmit(){
 	ssize_t bytes_recieved;
-	do{
-		// TODO need to add error check here
-		if(!ready4data){
-			pthread_mutex_lock(&Lock);
-			PrepareSendPacket(msg, msgSendData);
-			pthread_mutex_unlock(&Lock);
-			ready4data = true;		//ready for new data to pack next message
-			//std::cout << "Send message = " << msg << std::endl;
-			send(socketfd, msg, PACKET_SIZE, 0);
-			bytes_recieved = recv(socketfd, msg, PACKET_SIZE, 0);
-			// If no data arrives, the program will just wait here until some data arrives.
-			if(bytes_recieved<1){
-				communicating = false;
-				break;
-			}
-			//std::cout << "Recv message = " << msg << std::endl;
-			ParseRecvPacket(msg, msgRecvData);
-			UseMessageData();
-		}
-	}while(bytes_recieved>0);
-
-	if (bytes_recieved == 0) {
-		std::cout << "host shut down." << std::endl;
+	PrepareSendPacket(msg, msgSendData);
+	//std::cout << "Send message = " << msg << std::endl;
+	send(socketfd, msg, PACKET_SIZE, 0);
+	// If no data arrives, the program will just wait here until some data arrives.
+	bytes_recieved = recv(socketfd, msg, PACKET_SIZE, 0);
+	//std::cout << "Recv message = " << msg << std::endl;
+	ParseRecvPacket(msg, msgRecvData);
+	UseMessageData();
+	if(bytes_recieved<1){
+		if (bytes_recieved == 0) std::cout << "host shut down." << std::endl;
+		if (bytes_recieved == -1) std::cout << "Receive error!" << std::endl;
+		server_connected = false;
+		SafeStop();	//E-STOP system
+		return 0;
 	}
-	if (bytes_recieved == -1){
-		std::cout << "Receive error!" << std::endl;
-	}
-
-	SafeStop();	//E-STOP system
-
-	std::cout << "Receiving complete. Closing socket..." << std::endl;
-	freeaddrinfo(host_info_list);
-	close(socketfd);
-
-	//TryConnect();
-
-	//socketAlive = false;
-	//std::cout << "Socket thread ending" << std::endl;
-
-	return 0;
+	return 1;
 }
 
 int ClientSocket::UseMessageData(){
@@ -135,9 +87,6 @@ int ClientSocket::UseMessageData(){
 	scratch_vars.lPWMDuty = msgRecvData.lDutyCmd;
 	scratch_vars.rPWMDuty = msgRecvData.rDutyCmd;
 	pru.SetMotionVars(&scratch_vars);
-	/*std::cout << "L_DIR = " << msgRecvData.lDirCmd << "\tR_DIR = " << msgRecvData.rDirCmd
-				<< "\tL_Duty = " << msgRecvData.lDutyCmd << "\tR_Duty = " << msgRecvData.rDutyCmd
-				<< std::endl;*/
 	return 0;
 }
 
@@ -169,6 +118,9 @@ int ClientSocket::SetMessageVars(data_struct *new_vars){
 }
 
 ClientSocket::~ClientSocket() {
+	std::cout << "Closing socket..." << std::endl;
+	freeaddrinfo(host_info_list);
+	close(socketfd);
 	std::cout << "ClientSocket object terminated" << std::endl;
 }
 

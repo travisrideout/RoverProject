@@ -104,7 +104,7 @@ private:
 public:
 	IMU(int bus, int address);
 	int wake();
-	void calibrate();
+	int calibrate();
 	void displayMode(int iterations);
 
 	int  readFullSensorState();

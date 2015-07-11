@@ -19,28 +19,24 @@
 #include <pthread.h>		// for threading
 
 extern bool socketAlive;
-extern bool communicating;
-extern bool ready4data;
-extern pthread_mutex_t Lock;
+extern bool server_connected;
+extern bool transmitting;
 extern PRU pru;
 extern const char* ip;
 extern const char* port;
 
-extern bool tryConnect;
-
 class ClientSocket {
 public:
 	ClientSocket();
-
 	int StartClient();
-	void* TryConnect();
-	static void* ClientThreadStarter(void*);
+	int Connect();
+	int Transmit();
 
 	//Message modifiers
 	int GetMessageVars(data_struct*);
 	int SetMessageVars(data_struct*);
 
-	~ClientSocket();	//virtual
+	~ClientSocket();
 
 private:
 	int UseMessageData();
@@ -49,6 +45,10 @@ private:
 	data_struct msgSendData;
 	data_struct msgRecvData;
 	char msg[PACKET_SIZE];
+
+	struct addrinfo host_info;      			// The struct that getaddrinfo() fills up with data.
+	struct addrinfo *host_info_list; 			// Pointer to the linked list of host_info's.
+	int socketfd;
 };
 
 #endif /* CLIENTSOCKET_H_ */

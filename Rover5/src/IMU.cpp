@@ -27,7 +27,7 @@ int IMU::wake(){
 	return 0;
 }
 
-void IMU::calibrate(){
+int IMU::calibrate(){
 	long gyroXsum = 0;
 	long gyroYsum = 0;
 	long gyroZsum = 0;
@@ -36,7 +36,10 @@ void IMU::calibrate(){
 	long accelZsum = 0;
 	std::cout << "Calibrating IMU " << std::flush;
 	for(int i=0;i<1000;i++){
-		this->readFullSensorState();
+		if(this->readFullSensorState() != 0){
+			std::cerr << "IMU Calibration failed" << std::endl;
+			return 1;
+		}
 		gyroXsum += this->gyroX;
 		gyroYsum += this->gyroY;
 		gyroZsum += this->gyroZ;
@@ -65,18 +68,17 @@ void IMU::calibrate(){
 	std::cout << "accel Z offset = " << this->accelZoffset << std::endl;
 
 	std::ofstream myfile ("IMU_cal_values.txt");
-	  if (myfile.is_open())
-	  {
-	    myfile <<  this->gyroXoffset << std::endl;
-	    myfile <<  this->gyroYoffset << std::endl;
-	    myfile <<  this->gyroZoffset << std::endl;
-	    myfile <<  this->accelXoffset << std::endl;
-	    myfile << this->accelYoffset << std::endl;
-	    myfile <<  this->accelZoffset << std::endl;
-	    myfile.close();
-	    std::cout << "Values saved to file" << std::endl;
-	  }
-	  else std::cout << "Unable to open file";
+	if (myfile.is_open()){
+		myfile <<  this->gyroXoffset << std::endl;
+		myfile <<  this->gyroYoffset << std::endl;
+		myfile <<  this->gyroZoffset << std::endl;
+		myfile <<  this->accelXoffset << std::endl;
+		myfile << this->accelYoffset << std::endl;
+		myfile <<  this->accelZoffset << std::endl;
+		myfile.close();
+		std::cout << "Values saved to file" << std::endl;
+	} else std::cerr << "Unable to open file";
+	return 0;
 }
 
 void IMU::calibrateFromFile(){
@@ -140,6 +142,7 @@ int IMU::readFullSensorState(){
 
     if (this->dataBuffer[0]!= 0xfd){
     	std::cout << "MAJOR FAILURE: DATA WITH IMU HAS LOST SYNC! " << std::endl;
+    	return 3;
     }
 
     this->accelerationX = fuseBytes(ACC_X_MSB, ACC_X_LSB);
@@ -296,7 +299,7 @@ BMA180_MODECONFIG IMU::getModeConfig(){
 }
 
 int IMU::writeI2CDeviceByte(char address, char value){
-    std::cout << "Starting BMA180 I2C sensor state write" << std::endl;
+   // std::cout << "Starting BMA180 I2C sensor state write" << std::endl;
     char namebuf[MAX_BUS];
    	snprintf(namebuf, sizeof(namebuf), "/dev/i2c-%d", I2CBus);
     int file;
@@ -328,7 +331,7 @@ int IMU::writeI2CDeviceByte(char address, char value){
         return(3);
     }
     close(file);
-    std::cout << "Finished IMU I2C sensor state write" << std::endl;
+    //std::cout << "Finished IMU I2C sensor state write" << std::endl;
     return 0;
 }
 

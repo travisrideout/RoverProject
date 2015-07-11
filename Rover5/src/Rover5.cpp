@@ -20,14 +20,15 @@
 //TODO switch from pthread to thread
 //TODO create task manager
 
-//unsigned int LEDGPIO = 50;   // GPIO1_18 = (1x32) + 18 = 50
-
 bool socketAlive = false;
-bool communicating = false;
-bool ready4data = true;
-bool tryConnect = true;
+bool server_connected = false;
+bool transmitting = true;
+bool quit = false;
+bool stop_transmitting = false;
+bool error1_printed = false;
+bool error2_printed = false;
 
-pthread_mutex_t Lock;
+pthread_t menuThread;		// create a thread id for menu
 
 PRU pru;
 ClientSocket tcp;
@@ -37,89 +38,77 @@ const char* ip = NULL;
 const char* port = NULL;
 
 void ForcedClose(int x){
-	pru.~PRU();
-	tcp.~ClientSocket();
-	std::cout<<"Forced Close"<<std::endl;
+	pthread_cancel(menuThread);
+	quit = 1;
 }
 
 int main(int argc, char *argv[]) {
 	ip = argv[1];
 	port = argv[2];
-	void* status1;
-	void* status2;
+	void* status;
+	pthread_create(&menuThread, NULL, &Menu::MenuThreadStarter, &menu);		//start thread for menu object
 
-	pthread_t clientThread;				// create a thread id for coms
-	pthread_t menuThread;				// create a thread id for menu
-	pthread_mutex_init(&Lock, NULL);	// initialize thread mutex
-
-	pthread_create(&clientThread, NULL, &ClientSocket::ClientThreadStarter, &tcp);	//start thread for tcp object
-	pthread_create(&menuThread, NULL, &Menu::MenuThreadStarter, &menu);				//start thread for menu object
-
-	//signal(SIGINT, &ForcedClose);	// to allow thread and pru deconstruction on ^c
+	signal(SIGINT, &ForcedClose);
 
 	data_struct scratch_vars;
 
-	int count = 0;
-	int pingDelay = 15;
+	socketAlive = tcp.StartClient();
+	server_connected = tcp.Connect();
+
+	short count = 0;
+	short pingFreq = 5;
+	short pingDelay = 30/pingFreq;		//TODO based on ROS frequency for now, dynamically set
+
+	//Main loop
 	while (socketAlive){
-		while(communicating){
-			if (ready4data){		//only pack data if ready to send
-				pthread_mutex_lock(&Lock);
+		while(server_connected){
+			error1_printed=false;
+			while (transmitting){
+				error2_printed=false;
 				tcp.GetMessageVars(&scratch_vars);
-				if(count>pingDelay){									//time delay to avoid ping echo
+				if(count>pingDelay){						//ensure ping frequency
 					scratch_vars.pingDist = pru.GetPing();
 					count = 0;
-					/*if(scratch_vars.pingDist<5000){						//avoid bad ping delay
-						pingDelay = scratch_vars.pingDist/20;			//dynamically set ping delay, close = short delay
-					}*/
 				}else{
 					count++;
+					scratch_vars.pingDist = 0;
 				}
 				scratch_vars.imuXAccel = imu.getAccelerationX();
 				scratch_vars.imuYAccel = imu.getAccelerationY();
 				scratch_vars.imuZAccel = imu.getAccelerationZ();
 				scratch_vars.imuXGyro = imu.getGyroX();
-				scratch_vars.imuYGyro = -imu.getGyroY();
-				scratch_vars.imuZGyro = -imu.getGyroZ();
+				scratch_vars.imuYGyro = imu.getGyroY();
+				scratch_vars.imuZGyro = imu.getGyroZ();
 				scratch_vars.lPos = pru.GetLeftPos();
 				scratch_vars.rPos = pru.GetRightPos();
 
-				/*std::cout << "X Gyro = " << scratch_vars.imuXGyro
-					<< "\t Y Gyro = " << scratch_vars.imuYGyro
-					<< "\t Z Gyro = " << scratch_vars.imuZGyro << std::endl;*/
-
 				tcp.SetMessageVars(&scratch_vars);
-				pthread_mutex_unlock(&Lock);
+				transmitting = tcp.Transmit();
 				imu.readFullSensorState();
-				ready4data = false;
+
+				if(quit||stop_transmitting) {
+					transmitting = false;
+					break;
+				}
 			}
+			if(!error2_printed){
+				std::cerr << "Server no longer transmitting. Use menu to retry transmitting" << std::endl;
+				error2_printed=true;
+			}
+			if(quit) break;
+			sleep(1);
 		}
+
+		if(!error1_printed){
+			std::cerr << "Connection with Server failed. Use menu to retry connection" << std::endl;
+			error1_printed = true;
+		}
+		if(quit) break;
+		sleep(1);
 	}
 
-	/*cout << "Preparing to flash an LED on pin P8_14" << endl;
-		gpio_export(LEDGPIO);    // The LED
-		gpio_set_dir(LEDGPIO, OUTPUT_PIN);   // The LED is an output
-
-		// Flash the LED 5 times
-		for (int i = 0; i < 5; i++) {
-			cout << "Setting the LED on" << endl;
-			gpio_set_value(LEDGPIO, HIGH);5
-			usleep(500000);         // on for 500ms
-			cout << "Setting the LED off" << endl;
-			gpio_set_value(LEDGPIO, LOW);
-			usleep(500000);         // off for 500ms
-		}
-		cout << "Finished Testing the GPIO Pins" << endl;*/
-	//gpio_unexport(LEDGPIO);     // unexport the LED
-
-	//to launch exe
-	//system("./hellobone");
-
-	pthread_join(clientThread,&status1);
-	pthread_join(menuThread,&status2);
+	pthread_join(menuThread,&status);
 	std::cout << "Joining threads" << std::endl;
-	pthread_mutex_destroy(&Lock);
-	std::cout << "Destroying mutex" << std::endl;
 
 	return 0;
 }

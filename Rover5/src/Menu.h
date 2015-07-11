@@ -13,18 +13,23 @@
 
 extern IMU imu;
 extern ClientSocket tcp;
-extern bool ready4data;
-extern bool tryConnect;
-extern bool communicating;
+extern bool transmitting;
+extern bool server_connected;
+extern bool error1_printed;
+extern bool error2_printed;
+extern bool quit;
+extern bool stop_transmitting;
 
 class Menu{
 public:
 	Menu();
 	static void* MenuThreadStarter(void*);
+	~Menu();
+
+private:
 	void PrintMenu();
 	void* Query();
-	~Menu();	//virtual
-private:
+
 };
 
 

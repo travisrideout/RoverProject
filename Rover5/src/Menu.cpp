@@ -8,7 +8,6 @@
 #include "Menu.h"
 
 Menu::Menu(){
-
 }
 
 void* Menu::MenuThreadStarter(void* context){
@@ -18,9 +17,11 @@ void* Menu::MenuThreadStarter(void* context){
 void Menu::PrintMenu(){
 	std::cout << std::endl;
 	std::cout << "**************************************************" << std::endl;
-	std::cout << "\t" << "c" << "\t" << "Calibrate IMU" << std::endl;
+	std::cout << "\t" << "i" << "\t" << "Calibrate IMU" << std::endl;
 	std::cout << "\t" << "h" << "\t" << "Print Menu" << std::endl;
-	std::cout << "\t" << "t" << "\t" << "Connect Coms" << std::endl;
+	std::cout << "\t" << "c" << "\t" << "Retry Connect With Server" << std::endl;
+	std::cout << "\t" << "t" << "\t" << "Retry Transmit Message" << std::endl;
+	std::cout << "\t" << "q" << "\t" << "Exit program" << std::endl;
 	std::cout << "**************************************************" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Select menu item: press <ENTER>" <<  std::endl;
@@ -31,17 +32,33 @@ void* Menu::Query(){
 		do{
 			std::cin >> input;
 			switch (input) {
-			case 'c':
-				communicating = false;
+			case 'i':
+				if(transmitting){
+					std::cout << "Stopping communication to Calibrate IMU" << std::endl;
+					stop_transmitting = true;
+					sleep(1);
+				}
 				imu.calibrate();
-				communicating = true;
+				stop_transmitting = false;
+				transmitting = true;
 				break;
 			case 'h':
 				PrintMenu();
 				break;
+			case 'c':
+				server_connected = tcp.Connect();
+				error1_printed = false;
+				break;
 			case 't':
-				ready4data = false;
-				tryConnect = true;
+				if(server_connected){
+					transmitting = tcp.Transmit();
+					error2_printed = false;
+				}else{
+					std::cerr << "Cannot Transmit - No connection with server" << std::endl;
+				}
+				break;
+			case 'q':
+				quit = true;
 				break;
 			default:
 				std::cout << "bad input, try again" << std::endl;
