@@ -40,7 +40,6 @@ public:
 	flow_gates fg_vals;
 
 private:
-
 };
 
 #endif /* ROVER5_H_ */

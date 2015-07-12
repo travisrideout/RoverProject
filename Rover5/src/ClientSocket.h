@@ -22,15 +22,10 @@
 
 class Rover;		//forward declared, not sure why i had to do this
 
-extern Rover rover;
-extern PRU pru;
-extern const char* ip;
-extern const char* port;
-
 class ClientSocket {
 public:
-	ClientSocket();
-	int StartClient();
+	ClientSocket(Rover *rover_ref, PRU *pru_ref);
+	int CreateSocket(const char* ip,const char* port);
 	int Connect();
 	int Transmit();
 
@@ -43,14 +38,18 @@ public:
 private:
 	int UseMessageData();
 	int SafeStop();
-	//Rover::flow_gates fg_local;
+
+	Rover &roverRef;
+	PRU &pruRef;
+
+	PRU::motion_struct scratch_vars;
 
 	data_struct msgSendData;
 	data_struct msgRecvData;
 	char msg[PACKET_SIZE];
 
-	struct addrinfo host_info;      			// The struct that getaddrinfo() fills up with data.
-	struct addrinfo *host_info_list; 			// Pointer to the linked list of host_info's.
+	struct addrinfo host_info;      	// The struct that getaddrinfo() fills up with data.
+	struct addrinfo *host_info_list; 	// Pointer to the linked list of host_info's.
 	int socketfd;
 };
 

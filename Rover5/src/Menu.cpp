@@ -7,7 +7,7 @@
 
 #include "Menu.h"
 
-Menu::Menu(){
+Menu::Menu(Rover *rover_ref, IMU *imu_ref, ClientSocket *tcp_ref): roverRef(*rover_ref), imuRef(*imu_ref), tcpRef(*tcp_ref){
 }
 
 void* Menu::MenuThreadStarter(void* context){
@@ -32,16 +32,16 @@ void* Menu::Query(){
 	char input = 'q';
 		do{
 			std::cin >> input;
-			rover.get_flow_gates(&fg_local);
+			roverRef.get_flow_gates(&fg_local);
 			switch (input) {
 			case 'i':
 				if(fg_local.transmitting){
 					std::cout << "Stopping communication to Calibrate IMU" << std::endl;
 					fg_local.stop_transmitting = true;
-					rover.set_flow_gates(&fg_local);
+					roverRef.set_flow_gates(&fg_local);
 					sleep(1);
 				}
-				imu.calibrate();
+				imuRef.calibrate();
 				fg_local.stop_transmitting = false;
 				fg_local.transmitting = true;
 				break;
@@ -49,12 +49,12 @@ void* Menu::Query(){
 				PrintMenu();
 				break;
 			case 'c':
-				fg_local.server_connected = tcp.Connect();
+				fg_local.server_connected = tcpRef.Connect();
 				fg_local.error1_printed = false;
 				break;
 			case 't':
 				if(fg_local.server_connected){
-					fg_local.transmitting = tcp.Transmit();
+					fg_local.transmitting = tcpRef.Transmit();
 					fg_local.error2_printed = false;
 				}else{
 					std::cerr << "Cannot Transmit - No connection with server" << std::endl;
@@ -66,7 +66,7 @@ void* Menu::Query(){
 			default:
 				std::cout << "bad input, try again" << std::endl;
 			}
-			rover.set_flow_gates(&fg_local);
+			roverRef.set_flow_gates(&fg_local);
 		}while(input!='q');
 		return 0 ;
 }

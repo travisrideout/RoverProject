@@ -8,24 +8,20 @@
 
 #include "Rover5.h"
 
-Rover rover;
-PRU pru;
-ClientSocket tcp;
-Menu menu;
-IMU imu (2, 0x68);
-const char* ip = NULL;
-const char* port = NULL;
-
+void ForcedClose(int x);
+int FC = 0;
 pthread_t menuThread;		// create a thread id for menu
 
-void ForcedClose(int x){
-	pthread_cancel(menuThread);
-	rover.fg_vals.quit = 1;
-}
-
 int main(int argc, char *argv[]) {
-	ip = argv[1];
-	port = argv[2];
+	const char* ip = argv[1];
+	const char* port= argv[2];
+
+	//create objects
+	Rover rover;
+	IMU imu (2, 0x68);
+	PRU pru;
+	ClientSocket tcp(&rover,&pru);
+	Menu menu(&rover,&imu,&tcp);
 
 	rover.init_flow_gates(rover.fg_vals);
 
@@ -36,8 +32,10 @@ int main(int argc, char *argv[]) {
 
 	data_struct scratch_vars;
 
-	rover.fg_vals.socketAlive = tcp.StartClient();
+	rover.fg_vals.socketAlive = tcp.CreateSocket(ip, port);
 	rover.fg_vals.server_connected = tcp.Connect();
+
+	std::cout << "Press h <ENTER> to show menu" << std::endl;
 
 	short count = 0;
 	short pingFreq = 5;
@@ -55,7 +53,7 @@ int main(int argc, char *argv[]) {
 					count = 0;
 				}else{
 					count++;
-					scratch_vars.pingDist = 0;
+					//scratch_vars.pingDist = 0;
 				}
 				scratch_vars.imuXAccel = imu.getAccelerationX();
 				scratch_vars.imuYAccel = imu.getAccelerationY();
@@ -70,7 +68,7 @@ int main(int argc, char *argv[]) {
 				rover.fg_vals.transmitting = tcp.Transmit();
 				imu.readFullSensorState();
 
-				if(rover.fg_vals.quit||rover.fg_vals.stop_transmitting) {
+				if(rover.fg_vals.quit||rover.fg_vals.stop_transmitting||FC) {
 					rover.fg_vals.transmitting = false;
 					break;
 				}
@@ -79,7 +77,7 @@ int main(int argc, char *argv[]) {
 				std::cerr << "Server no longer transmitting. Use menu to retry transmitting" << std::endl;
 				rover.fg_vals.error2_printed=true;
 			}
-			if(rover.fg_vals.quit) break;
+			if(rover.fg_vals.quit||FC) break;
 			sleep(1);
 		}
 
@@ -87,7 +85,7 @@ int main(int argc, char *argv[]) {
 			std::cerr << "Connection with Server failed. Use menu to retry connection" << std::endl;
 			rover.fg_vals.error1_printed = true;
 		}
-		if(rover.fg_vals.quit) break;
+		if(rover.fg_vals.quit||FC) break;
 		sleep(1);
 	}
 
@@ -95,6 +93,11 @@ int main(int argc, char *argv[]) {
 	std::cout << "Joining threads" << std::endl;
 
 	return 0;
+}
+
+void ForcedClose(int x){
+	pthread_cancel(menuThread);
+	FC = 1;
 }
 
 Rover::Rover(){

@@ -7,13 +7,13 @@
 
 #include "ClientSocket.h"
 
-ClientSocket::ClientSocket(): host_info(addrinfo()),socketfd(0) {
+ClientSocket::ClientSocket(Rover *rover_ref, PRU *pru_ref): roverRef(*rover_ref),
+	pruRef(*pru_ref), host_info(addrinfo()), socketfd(0) {
 	InitializeMessageData(msgSendData);
 	host_info_list = new addrinfo();
 }
 
-
-int ClientSocket::StartClient(){
+int ClientSocket::CreateSocket(const char* ip, const char* port){
 	std::cout << "Starting Client" << std::endl;
 
 	if(ip == NULL || port == NULL){
@@ -46,7 +46,7 @@ int ClientSocket::StartClient(){
 
 int ClientSocket::Connect(){
 	short status;
-	std::cout << "Connecting to " << ip << " " << port << std::endl;
+	std::cout << "Connecting to Server" << std::endl;
 	status = connect(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen); //wait here for connection
 	std::cout <<"status was = " << status << std::endl;
 	if (status == -1){
@@ -73,9 +73,9 @@ int ClientSocket::Transmit(){
 	if(bytes_recieved<1){
 		if (bytes_recieved == 0) std::cout << "host shut down." << std::endl;
 		if (bytes_recieved == -1) std::cout << "Receive error!" << std::endl;
-		rover.get_flow_gates(&fg_local);
+		roverRef.get_flow_gates(&fg_local);
 		fg_local.server_connected = false;
-		rover.set_flow_gates(&fg_local);
+		roverRef.set_flow_gates(&fg_local);
 		SafeStop();	//E-STOP system
 		return 0;
 	}
@@ -83,25 +83,23 @@ int ClientSocket::Transmit(){
 }
 
 int ClientSocket::UseMessageData(){
-	PRU::motion_struct scratch_vars;
-	pru.GetMotionVars(&scratch_vars);
+	pruRef.GetMotionVars(&scratch_vars);
 	scratch_vars.lDir = msgRecvData.lDirCmd;
 	scratch_vars.rDir = msgRecvData.rDirCmd;
 	scratch_vars.lPWMDuty = msgRecvData.lDutyCmd;
 	scratch_vars.rPWMDuty = msgRecvData.rDutyCmd;
-	pru.SetMotionVars(&scratch_vars);
+	pruRef.SetMotionVars(&scratch_vars);
 	return 0;
 }
 
 //E-STOP system - sets motion commands to 0
 int ClientSocket::SafeStop(){
-	PRU::motion_struct scratch_vars;
-	pru.GetMotionVars(&scratch_vars);
+	pruRef.GetMotionVars(&scratch_vars);
 	scratch_vars.lDir = 0;
 	scratch_vars.rDir = 0;
 	scratch_vars.lPWMDuty = 0;
 	scratch_vars.rPWMDuty = 0;
-	if(pru.SetMotionVars(&scratch_vars)!=1){
+	if(pruRef.SetMotionVars(&scratch_vars)!=1){
 		std::cerr << "failed to E_STOP system" << std::endl;
 	}else{
 		std::cerr << "System E-STOP" << std::endl;

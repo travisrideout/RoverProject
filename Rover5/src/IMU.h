@@ -131,7 +131,7 @@ public:
 	float getPitch() { return pitch; }  // in degrees
 	float getRoll() { return roll; }  // in degrees
 
-	~IMU();		//virtual
+	~IMU();
 };
 
 #endif /* IMU_H_ */

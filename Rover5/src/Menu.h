@@ -15,13 +15,9 @@
 class Rover;
 class ClientSocket;
 
-extern Rover rover;
-extern IMU imu;
-extern ClientSocket tcp;
-
 class Menu{
 public:
-	Menu();
+	Menu(Rover *rover_ref, IMU *imu_ref, ClientSocket *tcp_ref);
 	static void* MenuThreadStarter(void*);
 	~Menu();
 
@@ -29,7 +25,9 @@ private:
 	void PrintMenu();
 	void* Query();
 
-
+	Rover &roverRef;
+	IMU &imuRef;
+	ClientSocket &tcpRef;
 
 };
 
