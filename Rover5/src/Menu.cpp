@@ -28,41 +28,45 @@ void Menu::PrintMenu(){
 }
 
 void* Menu::Query(){
+	Rover::flow_gates fg_local;
 	char input = 'q';
 		do{
 			std::cin >> input;
+			rover.get_flow_gates(&fg_local);
 			switch (input) {
 			case 'i':
-				if(transmitting){
+				if(fg_local.transmitting){
 					std::cout << "Stopping communication to Calibrate IMU" << std::endl;
-					stop_transmitting = true;
+					fg_local.stop_transmitting = true;
+					rover.set_flow_gates(&fg_local);
 					sleep(1);
 				}
 				imu.calibrate();
-				stop_transmitting = false;
-				transmitting = true;
+				fg_local.stop_transmitting = false;
+				fg_local.transmitting = true;
 				break;
 			case 'h':
 				PrintMenu();
 				break;
 			case 'c':
-				server_connected = tcp.Connect();
-				error1_printed = false;
+				fg_local.server_connected = tcp.Connect();
+				fg_local.error1_printed = false;
 				break;
 			case 't':
-				if(server_connected){
-					transmitting = tcp.Transmit();
-					error2_printed = false;
+				if(fg_local.server_connected){
+					fg_local.transmitting = tcp.Transmit();
+					fg_local.error2_printed = false;
 				}else{
 					std::cerr << "Cannot Transmit - No connection with server" << std::endl;
 				}
 				break;
 			case 'q':
-				quit = true;
+				fg_local.quit = true;
 				break;
 			default:
 				std::cout << "bad input, try again" << std::endl;
 			}
+			rover.set_flow_gates(&fg_local);
 		}while(input!='q');
 		return 0 ;
 }

@@ -17,10 +17,12 @@
 #include "PRU.h"			// to get/set PRU values
 #include <Rover5Coms.h>
 #include <pthread.h>		// for threading
+#include "Rover5.h"
+#include "Menu.h"
 
-extern bool socketAlive;
-extern bool server_connected;
-extern bool transmitting;
+class Rover;		//forward declared, not sure why i had to do this
+
+extern Rover rover;
 extern PRU pru;
 extern const char* ip;
 extern const char* port;
@@ -41,6 +43,7 @@ public:
 private:
 	int UseMessageData();
 	int SafeStop();
+	//Rover::flow_gates fg_local;
 
 	data_struct msgSendData;
 	data_struct msgRecvData;

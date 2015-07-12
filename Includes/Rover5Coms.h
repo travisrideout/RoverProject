@@ -8,7 +8,7 @@
 #ifndef ROVER5COMS_H_
 #define ROVER5COMS_H_
 
-#include <string>
+#include <string.h>
 #include <sstream>
 #include <iomanip>			// for hex
 #include <stdio.h>			// for sscanf

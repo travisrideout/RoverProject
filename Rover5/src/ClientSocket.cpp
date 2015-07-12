@@ -60,6 +60,7 @@ int ClientSocket::Connect(){
 }
 
 int ClientSocket::Transmit(){
+	Rover::flow_gates fg_local;
 	ssize_t bytes_recieved;
 	PrepareSendPacket(msg, msgSendData);
 	//std::cout << "Send message = " << msg << std::endl;
@@ -72,7 +73,9 @@ int ClientSocket::Transmit(){
 	if(bytes_recieved<1){
 		if (bytes_recieved == 0) std::cout << "host shut down." << std::endl;
 		if (bytes_recieved == -1) std::cout << "Receive error!" << std::endl;
-		server_connected = false;
+		rover.get_flow_gates(&fg_local);
+		fg_local.server_connected = false;
+		rover.set_flow_gates(&fg_local);
 		SafeStop();	//E-STOP system
 		return 0;
 	}
