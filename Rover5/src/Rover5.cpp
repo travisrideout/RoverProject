@@ -21,12 +21,9 @@ int main(int argc, char *argv[]) {
 	IMU imu (2, 0x68);
 	PRU pru;
 	ClientSocket tcp(&rover,&pru);
-	Menu menu(&rover,&imu,&tcp);
+	Menu menu(&rover,&imu,&tcp,&pru);
 
 	rover.init_flow_gates(rover.fg_vals);
-
-	void* status;
-	pthread_create(&menuThread, NULL, &Menu::MenuThreadStarter, &menu);		//start thread for menu object
 
 	signal(SIGINT, &ForcedClose);
 
@@ -35,7 +32,8 @@ int main(int argc, char *argv[]) {
 	rover.fg_vals.socketAlive = tcp.CreateSocket(ip, port);
 	rover.fg_vals.server_connected = tcp.Connect();
 
-	std::cout << "Press h <ENTER> to show menu" << std::endl;
+	void* status;
+	pthread_create(&menuThread, NULL, &Menu::MenuThreadStarter, &menu);		//start thread for menu object
 
 	short count = 0;
 	short pingFreq = 5;

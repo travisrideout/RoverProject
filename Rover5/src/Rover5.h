@@ -14,8 +14,8 @@
 #include <signal.h>
 #include <Rover5Coms.h>
 #include <pthread.h>		//TODO switch from pthread to thread
-#include "PRU.h"
 #include "IMU.h"
+#include "PRU.h"
 #include "ClientSocket.h"
 #include "Menu.h"
 
