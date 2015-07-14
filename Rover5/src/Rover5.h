@@ -8,16 +8,7 @@
 #ifndef ROVER5_H_
 #define ROVER5_H_
 
-#include <iostream>
-#include <cstdlib>
-#include <unistd.h>
-#include <signal.h>
-#include <Rover5Coms.h>
-#include <pthread.h>		//TODO switch from pthread to thread
-#include "IMU.h"
-#include "PRU.h"
-#include "ClientSocket.h"
-#include "Menu.h"
+
 
 class Rover{
 public:

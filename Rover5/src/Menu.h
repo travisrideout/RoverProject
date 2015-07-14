@@ -10,10 +10,9 @@
 
 #include "Rover5.h"
 #include "IMU.h"
-#include "ClientSocket.h"
 #include "PRU.h"
+#include "ClientSocket.h"
 
-class Rover;
 class ClientSocket;
 
 class Menu{

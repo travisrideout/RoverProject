@@ -14,13 +14,11 @@
 #include <cstring>      	// Needed for memset
 #include <sys/socket.h> 	// Needed for the socket functions
 #include <netdb.h>      	// Needed for the socket functions
-#include "PRU.h"			// to get/set PRU values
 #include <Rover5Coms.h>
 #include <pthread.h>		// for threading
-#include "Rover5.h"
+#include "PRU.h"			// to get/set PRU values
 #include "Menu.h"
-
-class Rover;		//forward declared, not sure why i had to do this
+#include "Rover5.h"
 
 class ClientSocket {
 public:

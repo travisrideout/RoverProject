@@ -23,6 +23,7 @@ void Menu::PrintMenu(){
 	std::cout << "\t" << "k" << "\t" << "Keyboard Controller" << std::endl;
 	std::cout << "\t" << "i" << "\t" << "Calibrate IMU" << std::endl;
 	std::cout << "\t" << "q" << "\t" << "Exit program" << std::endl;
+	std::cout << "\t" << "s" << "\t" << "Stop Transmitting" << std::endl;
 	std::cout << "\t" << "t" << "\t" << "Retry Transmit Message" << std::endl;
 	std::cout << "**************************************************" << std::endl;
 	std::cout << std::endl;
@@ -60,10 +61,24 @@ void* Menu::Query(){
 			fg_local.transmitting = true;
 			break;
 		case 'k':
+			if(fg_local.transmitting){
+				std::cout << "Stopping communication to Utilize Keyboard Controller" << std::endl;
+				fg_local.stop_transmitting = true;
+				roverRef.set_flow_gates(&fg_local);
+				sleep(1);
+			}
 			KeyboardController();
 			break;
 		case 'q':
 			fg_local.quit = true;
+			break;
+		case 's':
+			if(fg_local.transmitting){
+				std::cout << "Stopping Communication" << std::endl;
+				fg_local.stop_transmitting = true;
+			}else{
+				std::cerr << "Not Currently Transmitting" << std::endl;
+			}
 			break;
 		case 't':
 			if(fg_local.server_connected){
@@ -121,15 +136,15 @@ void Menu::KeyboardController (){
 			scratch_motion_vars.rPWMDuty = 0;
 			break;
 		case 7:
-			if(scratch_motion_vars.lPWMDuty <= 90){
-				scratch_motion_vars.lPWMDuty += 10;
-				scratch_motion_vars.rPWMDuty += 10;
-			}
-			break;
-		case 9:
 			if(scratch_motion_vars.lPWMDuty >= 10){
 				scratch_motion_vars.lPWMDuty -= 10;
 				scratch_motion_vars.rPWMDuty -= 10;
+			}
+			break;
+		case 9:
+			if(scratch_motion_vars.lPWMDuty <= 90){
+				scratch_motion_vars.lPWMDuty += 10;
+				scratch_motion_vars.rPWMDuty += 10;
 			}
 			break;
 		default:
@@ -141,6 +156,7 @@ void Menu::KeyboardController (){
 		}
 		pruRef.SetMotionVars(&scratch_motion_vars);
 	}while(input != 0);
+	PrintMenu();
 }
 
 Menu::~Menu(){

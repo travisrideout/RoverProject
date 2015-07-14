@@ -6,6 +6,16 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+#include <iostream>
+#include <cstdlib>
+#include <unistd.h>
+#include <signal.h>
+#include <Rover5Coms.h>
+#include <pthread.h>		//TODO switch from pthread to thread
+#include "IMU.h"
+#include "PRU.h"
+#include "ClientSocket.h"
+#include "Menu.h"
 #include "Rover5.h"
 
 void ForcedClose(int x);

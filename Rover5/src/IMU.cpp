@@ -27,6 +27,7 @@ int IMU::wake(){
 	return 0;
 }
 
+//TODO Keep running average of calibration values and error on large offsets
 int IMU::calibrate(){
 	long gyroXsum = 0;
 	long gyroYsum = 0;
